@@ -1,0 +1,26 @@
+# Generic dcrbazaar deployment. Portable - no reverse proxy, TLS, or domain
+# assumptions. Front :8444 with your own proxy (traefik, nginx, caddy) for TLS
+# and a public hostname.
+#
+#   cp dcrbazaar.sample.yaml dcrbazaar.yaml   # then edit
+#   docker compose up -d --build
+#
+# The build context is the repo root so the sibling `lib/` module is available.
+
+services:
+  dcrbazaar:
+    build:
+      context: ..
+      dockerfile: bazaar/Dockerfile
+    image: dcrbazaar:latest
+    restart: unless-stopped
+    ports:
+      # Localhost only by default - put a reverse proxy in front for public TLS.
+      # Change to "8444:8444" to expose directly (not recommended without TLS).
+      - "127.0.0.1:8444:8444"
+    volumes:
+      - ./dcrbazaar.yaml:/etc/dcrbazaar/dcrbazaar.yaml:ro
+      - dcrbazaar-data:/var/lib/dcrbazaar
+
+volumes:
+  dcrbazaar-data:

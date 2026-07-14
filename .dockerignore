@@ -1,0 +1,12 @@
+# dcrbazaar builds from the repo root but needs only bazaar/ and lib/.
+# Keep the build context minimal and never ship local state.
+*
+!bazaar
+!lib
+
+# Never copy local build/run artifacts even from the included dirs.
+bazaar/dcrbazaar
+bazaar/dcrbazaar.yaml
+**/*.db
+**/*.db-*
+**/*.test

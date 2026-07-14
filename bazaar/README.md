@@ -71,6 +71,28 @@ onchain:
   min_confs: 1
 ```
 
+## Run with Docker
+
+The image is a fully static binary (pure-Go sqlite, no cgo). Build it from the
+repository root - the build needs the sibling `lib/` module:
+
+```
+docker build -f bazaar/Dockerfile -t dcrbazaar:latest .
+```
+
+Or use the compose file, which sets the build context and a persistent volume
+for the SQLite store:
+
+```
+cd bazaar
+cp dcrbazaar.sample.yaml dcrbazaar.yaml   # then edit (set store: /var/lib/dcrbazaar/dcrbazaar.db)
+docker compose up -d --build
+```
+
+It listens on `:8444` (published to `127.0.0.1` by default). Put your own
+reverse proxy (traefik, nginx, caddy) in front for a public hostname and TLS -
+dcrbazaar itself speaks plain HTTP unless you set `tls_cert`/`tls_key`.
+
 ## Register a resource
 
 A dcr402 or dcr402d deployment lists itself in the index with the submit

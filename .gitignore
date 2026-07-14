@@ -9,6 +9,9 @@ vendor/
 /agent/dcr402-agent
 /gateway/dcr402d
 /bazaar/dcrbazaar
+
+# Local dcrbazaar runtime config (copied from dcrbazaar.sample.yaml)
+/bazaar/dcrbazaar.yaml
 /examples/e2e
 /examples/agent-e2e
 /examples/agent-demo
