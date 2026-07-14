@@ -1,0 +1,35 @@
+# dcr402-agent spending policy (dcrpay spec §4).
+#
+# Policy is code, not prompt: the agent explains, the engine decides. Edit
+# this file and send the daemon SIGHUP to reload. There is deliberately no
+# tool to change policy over MCP — it is the owner's file alone.
+#
+# Amounts are decimal DCR ("0.5 DCR" or "0.5"); parsed exactly, max 8 places.
+
+mode: default-deny            # default-deny | default-allow
+
+limits:
+  max_per_payment: 0.5 DCR    # reject any single payment above this
+  daily_budget:    2.0 DCR    # rolling UTC-day cap
+  weekly_budget:   8.0 DCR    # rolling ISO-week cap
+  max_payments_per_hour: 30   # velocity guard
+
+approval:
+  threshold: 0.1 DCR          # payments >= threshold need owner approval
+  ttl: 15m                    # unanswered approval = deny (fail-closed)
+  channel: both               # bisonrelay | web | both
+
+allow:
+  # For fetch_paid: which hosts the agent may pay (default-deny → allowlist
+  # required). "*.example.com" matches any subdomain.
+  domains:
+    - sat.urbandigital.cc
+  # For pay_ln_invoice: pin acceptable destination node pubkeys.
+  ln_nodes: []
+  # For pay_dcr_address: pin acceptable on-chain addresses.
+  dcr_addresses: []
+
+deny:
+  domains: []
+
+memo_required: true           # every payment must carry an agent reason string

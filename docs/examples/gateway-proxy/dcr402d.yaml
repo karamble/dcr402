@@ -1,0 +1,40 @@
+# dcr402d configuration: charge for an existing service with no code.
+#
+# Point dcr402d at a service you already run and it gates the routes you
+# price. Prices are decimal DCR strings, parsed exactly (max 8 decimals).
+# Fill in payto and the ln paths, then: dcr402d -config dcr402d.yaml
+
+listen: "127.0.0.1:8443"
+network: simnet                 # mainnet | testnet3 | simnet
+service: my-service
+payto: <identity_pubkey>        # lncli getinfo
+store: dcr402d.db               # SQLite; the credit ledger lives beside it
+
+ln:
+  host: 127.0.0.1:10009
+  tls_cert: /home/user/.dcrlnd/tls.cert
+  # The stock invoice.macaroon is all dcr402d needs (no spend permission).
+  macaroon: /home/user/.dcrlnd/data/chain/decred/simnet/invoice.macaroon
+
+web:
+  status_page: true             # /_dcr402/ and /_dcr402/info
+
+upstreams:
+  # A plain HTTP API, gated per call. Unlisted paths pass through free.
+  - route: /api/
+    target: http://127.0.0.1:9000
+    mode: percall
+    prices:
+      "GET /api/v1/search": "0.001"
+      "POST /api/v1/process": "0.02"
+
+  # A Streamable-HTTP MCP server. initialize, tools/list, and the rest pass
+  # through free; only tools/call is priced, by tool name.
+  - route: /mcp
+    target: http://127.0.0.1:9001/mcp
+    mcp: true
+    mode: percall
+    tool_prices:
+      process: "0.02"
+    tool_price_default: "0.002"
+    free_tools: [about]

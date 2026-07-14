@@ -1,0 +1,88 @@
+{
+  "description": "x402 v2 envelope vectors, onchain method. txid is synthetic (sha256 of a fixed string) \u2014 structural vectors only; chain lookups are out of scope for these files. Never send funds to the example address.",
+  "vectors": [
+    {
+      "name": "payment-required",
+      "type": "PaymentRequired header value",
+      "json": {
+        "x402Version": 2,
+        "error": "Payment required",
+        "resource": {
+          "url": "https://api.example.com/v1/topup",
+          "description": "Credit top-up",
+          "mimeType": "application/json"
+        },
+        "accepts": [
+          {
+            "scheme": "exact",
+            "network": "bip122:298e5cc3d985bfe7f81dc135f360abe0",
+            "amount": "100000000",
+            "asset": "DCR",
+            "payTo": "DsQxuVRvS4eaJ42dhQEsCXauMWjvopWgrVg",
+            "maxTimeoutSeconds": 3600,
+            "extra": {
+              "assetTransferMethod": "onchain",
+              "confirmations": 2,
+              "credential": "b25jaGFpbi1jaGFsbGVuZ2UtY3JlZGVudGlhbC1wbGFjZWhvbGRlcg=="
+            }
+          }
+        ]
+      },
+      "jsonText": "{\"x402Version\":2,\"error\":\"Payment required\",\"resource\":{\"url\":\"https://api.example.com/v1/topup\",\"description\":\"Credit top-up\",\"mimeType\":\"application/json\"},\"accepts\":[{\"scheme\":\"exact\",\"network\":\"bip122:298e5cc3d985bfe7f81dc135f360abe0\",\"amount\":\"100000000\",\"asset\":\"DCR\",\"payTo\":\"DsQxuVRvS4eaJ42dhQEsCXauMWjvopWgrVg\",\"maxTimeoutSeconds\":3600,\"extra\":{\"assetTransferMethod\":\"onchain\",\"confirmations\":2,\"credential\":\"b25jaGFpbi1jaGFsbGVuZ2UtY3JlZGVudGlhbC1wbGFjZWhvbGRlcg==\"}}]}",
+      "base64": "eyJ4NDAyVmVyc2lvbiI6MiwiZXJyb3IiOiJQYXltZW50IHJlcXVpcmVkIiwicmVzb3VyY2UiOnsidXJsIjoiaHR0cHM6Ly9hcGkuZXhhbXBsZS5jb20vdjEvdG9wdXAiLCJkZXNjcmlwdGlvbiI6IkNyZWRpdCB0b3AtdXAiLCJtaW1lVHlwZSI6ImFwcGxpY2F0aW9uL2pzb24ifSwiYWNjZXB0cyI6W3sic2NoZW1lIjoiZXhhY3QiLCJuZXR3b3JrIjoiYmlwMTIyOjI5OGU1Y2MzZDk4NWJmZTdmODFkYzEzNWYzNjBhYmUwIiwiYW1vdW50IjoiMTAwMDAwMDAwIiwiYXNzZXQiOiJEQ1IiLCJwYXlUbyI6IkRzUXh1VlJ2UzRlYUo0MmRoUUVzQ1hhdU1XanZvcFdnclZnIiwibWF4VGltZW91dFNlY29uZHMiOjM2MDAsImV4dHJhIjp7ImFzc2V0VHJhbnNmZXJNZXRob2QiOiJvbmNoYWluIiwiY29uZmlybWF0aW9ucyI6MiwiY3JlZGVudGlhbCI6ImIyNWphR0ZwYmkxamFHRnNiR1Z1WjJVdFkzSmxaR1Z1ZEdsaGJDMXdiR0ZqWldodmJHUmxjZz09In19XX0="
+    },
+    {
+      "name": "payment-payload",
+      "type": "PaymentPayload header value",
+      "json": {
+        "x402Version": 2,
+        "resource": {
+          "url": "https://api.example.com/v1/topup"
+        },
+        "accepted": {
+          "scheme": "exact",
+          "network": "bip122:298e5cc3d985bfe7f81dc135f360abe0",
+          "amount": "100000000",
+          "asset": "DCR",
+          "payTo": "DsQxuVRvS4eaJ42dhQEsCXauMWjvopWgrVg",
+          "maxTimeoutSeconds": 3600,
+          "extra": {
+            "assetTransferMethod": "onchain",
+            "confirmations": 2,
+            "credential": "b25jaGFpbi1jaGFsbGVuZ2UtY3JlZGVudGlhbC1wbGFjZWhvbGRlcg=="
+          }
+        },
+        "payload": {
+          "txid": "db8d5ff9c00dda9f04a3654064ebb76607a26f7c3ec275aeee77a83847f2a0fb"
+        }
+      },
+      "jsonText": "{\"x402Version\":2,\"resource\":{\"url\":\"https://api.example.com/v1/topup\"},\"accepted\":{\"scheme\":\"exact\",\"network\":\"bip122:298e5cc3d985bfe7f81dc135f360abe0\",\"amount\":\"100000000\",\"asset\":\"DCR\",\"payTo\":\"DsQxuVRvS4eaJ42dhQEsCXauMWjvopWgrVg\",\"maxTimeoutSeconds\":3600,\"extra\":{\"assetTransferMethod\":\"onchain\",\"confirmations\":2,\"credential\":\"b25jaGFpbi1jaGFsbGVuZ2UtY3JlZGVudGlhbC1wbGFjZWhvbGRlcg==\"}},\"payload\":{\"txid\":\"db8d5ff9c00dda9f04a3654064ebb76607a26f7c3ec275aeee77a83847f2a0fb\"}}",
+      "base64": "eyJ4NDAyVmVyc2lvbiI6MiwicmVzb3VyY2UiOnsidXJsIjoiaHR0cHM6Ly9hcGkuZXhhbXBsZS5jb20vdjEvdG9wdXAifSwiYWNjZXB0ZWQiOnsic2NoZW1lIjoiZXhhY3QiLCJuZXR3b3JrIjoiYmlwMTIyOjI5OGU1Y2MzZDk4NWJmZTdmODFkYzEzNWYzNjBhYmUwIiwiYW1vdW50IjoiMTAwMDAwMDAwIiwiYXNzZXQiOiJEQ1IiLCJwYXlUbyI6IkRzUXh1VlJ2UzRlYUo0MmRoUUVzQ1hhdU1XanZvcFdnclZnIiwibWF4VGltZW91dFNlY29uZHMiOjM2MDAsImV4dHJhIjp7ImFzc2V0VHJhbnNmZXJNZXRob2QiOiJvbmNoYWluIiwiY29uZmlybWF0aW9ucyI6MiwiY3JlZGVudGlhbCI6ImIyNWphR0ZwYmkxamFHRnNiR1Z1WjJVdFkzSmxaR1Z1ZEdsaGJDMXdiR0ZqWldodmJHUmxjZz09In19LCJwYXlsb2FkIjp7InR4aWQiOiJkYjhkNWZmOWMwMGRkYTlmMDRhMzY1NDA2NGViYjc2NjA3YTI2ZjdjM2VjMjc1YWVlZTc3YTgzODQ3ZjJhMGZiIn19"
+    },
+    {
+      "name": "settlement-success",
+      "type": "SettlementResponse header value",
+      "json": {
+        "success": true,
+        "transaction": "db8d5ff9c00dda9f04a3654064ebb76607a26f7c3ec275aeee77a83847f2a0fb",
+        "network": "bip122:298e5cc3d985bfe7f81dc135f360abe0",
+        "amount": "100000000"
+      },
+      "jsonText": "{\"success\":true,\"transaction\":\"db8d5ff9c00dda9f04a3654064ebb76607a26f7c3ec275aeee77a83847f2a0fb\",\"network\":\"bip122:298e5cc3d985bfe7f81dc135f360abe0\",\"amount\":\"100000000\"}",
+      "base64": "eyJzdWNjZXNzIjp0cnVlLCJ0cmFuc2FjdGlvbiI6ImRiOGQ1ZmY5YzAwZGRhOWYwNGEzNjU0MDY0ZWJiNzY2MDdhMjZmN2MzZWMyNzVhZWVlNzdhODM4NDdmMmEwZmIiLCJuZXR3b3JrIjoiYmlwMTIyOjI5OGU1Y2MzZDk4NWJmZTdmODFkYzEzNWYzNjBhYmUwIiwiYW1vdW50IjoiMTAwMDAwMDAwIn0="
+    },
+    {
+      "name": "settlement-pending",
+      "type": "SettlementResponse header value",
+      "json": {
+        "success": false,
+        "errorReason": "insufficient_confirmations",
+        "transaction": "",
+        "network": "bip122:298e5cc3d985bfe7f81dc135f360abe0"
+      },
+      "jsonText": "{\"success\":false,\"errorReason\":\"insufficient_confirmations\",\"transaction\":\"\",\"network\":\"bip122:298e5cc3d985bfe7f81dc135f360abe0\"}",
+      "base64": "eyJzdWNjZXNzIjpmYWxzZSwiZXJyb3JSZWFzb24iOiJpbnN1ZmZpY2llbnRfY29uZmlybWF0aW9ucyIsInRyYW5zYWN0aW9uIjoiIiwibmV0d29yayI6ImJpcDEyMjoyOThlNWNjM2Q5ODViZmU3ZjgxZGMxMzVmMzYwYWJlMCJ9",
+      "note": "The retryable depth-wait response (protocol flow step 6)."
+    }
+  ]
+}

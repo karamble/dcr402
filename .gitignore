@@ -1,0 +1,34 @@
+# Go build artifacts
+*.o
+*.test
+*.out
+/bin/
+vendor/
+
+# Command binaries (a stray `go build ./cmd/x` drops `x` at the module root)
+/agent/dcr402-agent
+/gateway/dcr402d
+/bazaar/dcrbazaar
+/examples/e2e
+/examples/agent-e2e
+/examples/agent-demo
+/examples/gateway-e2e
+/examples/bazaar-e2e
+/examples/upstream
+/examples/walletcert
+/docs/credit-accounts
+/docs/custom-approver
+/docs/gate-http-api
+/docs/gate-mcp-server
+/docs/pay-client-go
+
+# Editors / OS
+.idea/
+.vscode/
+*.swp
+*~
+.DS_Store
+
+# Claude Code local state - never commit to the project repo
+.claude/
+CLAUDE.md

@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "dcr402-agent": {
+      "command": "/path/to/dcr402-agent",
+      "env": {
+        "DCR402_AGENT_MCP": "stdio",
+        "DCR402_AGENT_NETWORK": "simnet",
+        "DCR402_AGENT_DB": "/home/you/.dcr402-agent/agent.db",
+        "DCR402_AGENT_POLICY": "/home/you/.dcr402-agent/policy.yaml",
+        "DCRLND_RPC": "127.0.0.1:10010",
+        "DCRLND_TLS_CERT": "/home/you/.dcrlnd-buyer/tls.cert",
+        "DCRLND_MACAROON": "/home/you/.dcr402-agent/payment-scoped.macaroon"
+      }
+    }
+  }
+}

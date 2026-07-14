@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>dcr402-agent</title>
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<div class="wrap">
+  <header class="topbar">
+    <div class="brand">dcr402<span class="accent">-agent</span></div>
+    <div class="meta" id="meta">
+      <span><span class="dot" id="syncdot"></span><b id="network">…</b></span>
+      <span>policy <b id="mode">…</b></span>
+      <span id="nodewrap">node <b id="node">…</b></span>
+    </div>
+    <div class="live" id="live"><span class="pulse"></span> live</div>
+  </header>
+
+  <section class="approvals" id="approvals" hidden>
+    <p class="eyebrow">Pending approval — the owner decides before any spend</p>
+    <div id="approval-list"></div>
+  </section>
+
+  <div class="cards">
+    <div class="card">
+      <h3>Lightning rail</h3>
+      <div class="big"><span id="ln-balance">—</span><small>DCR spendable</small></div>
+      <div class="sub">dcrlnd · payment-scoped macaroon</div>
+    </div>
+    <div class="card" id="onchain-card">
+      <h3>On-chain rail</h3>
+      <div class="big"><span id="onchain-balance">—</span><small>DCR · account "agent"</small></div>
+      <div class="sub">dcrwallet · exposure ceiling</div>
+    </div>
+    <div class="card">
+      <h3>Budgets</h3>
+      <div class="gauge">
+        <div class="lbl"><span>today</span><b id="day-lbl">—</b></div>
+        <div class="bar"><i id="day-bar"></i></div>
+      </div>
+      <div class="gauge">
+        <div class="lbl"><span>this week</span><b id="week-lbl">—</b></div>
+        <div class="bar"><i id="week-bar"></i></div>
+      </div>
+      <div class="gauge">
+        <div class="lbl"><span>velocity (last hour)</span><b id="hour-lbl">—</b></div>
+        <div class="bar"><i id="hour-bar" class="blue"></i></div>
+      </div>
+    </div>
+  </div>
+
+  <section class="panel">
+    <p class="eyebrow">Activity — every attempt, allowed or blocked</p>
+    <div class="feedwrap">
+      <table class="feed"><tbody id="feed">
+        <tr><td class="empty" colspan="5">waiting for activity…</td></tr>
+      </tbody></table>
+    </div>
+  </section>
+
+  <footer>
+    This dashboard is one optional package over the agent's JSON API. The daemon,
+    policy engine, and rails never depend on it — mount it, replace it, or delete
+    one line in <code>cmd/dcr402-agent</code>.
+  </footer>
+</div>
+<div class="toast" id="toast"></div>
+<script src="app.js"></script>
+</body>
+</html>

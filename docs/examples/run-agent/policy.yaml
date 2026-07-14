@@ -1,0 +1,31 @@
+# dcr402-agent spending policy. Policy is code, not prompt: the agent
+# explains, this file decides. Edit and send the daemon SIGHUP to reload.
+# Amounts are decimal DCR, parsed exactly (max 8 decimal places).
+
+mode: default-deny            # default-deny | default-allow
+
+limits:
+  max_per_payment: 0.5 DCR
+  daily_budget:    2.0 DCR
+  weekly_budget:   8.0 DCR
+  max_payments_per_hour: 30
+
+approval:
+  threshold: 0.1 DCR          # payments at or above this need owner approval
+  ttl: 15m                    # unanswered approval denies (fail closed)
+  channel: both               # bisonrelay | web | both
+
+allow:
+  # For fetch_paid: hosts the agent may pay. "*.example.com" matches
+  # subdomains. In default-deny mode a destination must be listed to pass.
+  domains:
+    - sat.example.com
+  # For pay_ln_invoice: acceptable destination node pubkeys.
+  ln_nodes: []
+  # For pay_dcr_address: acceptable on-chain addresses.
+  dcr_addresses: []
+
+deny:
+  domains: []
+
+memo_required: true           # every payment must carry an agent reason string

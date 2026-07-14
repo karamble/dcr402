@@ -1,0 +1,190 @@
+{
+  "description": "x402 v2 envelope vectors, lightning method. jsonText is the exact serialization whose bytes base64 encodes (standard alphabet, padded); json is the same value for semantic comparison. Anchored to the golden invoice (invoices.json).",
+  "vectors": [
+    {
+      "name": "payment-required",
+      "type": "PaymentRequired header value",
+      "json": {
+        "x402Version": 2,
+        "error": "Payment required",
+        "resource": {
+          "url": "https://api.example.com/v1/process",
+          "description": "Example paid API call",
+          "mimeType": "application/json"
+        },
+        "accepts": [
+          {
+            "scheme": "exact",
+            "network": "bip122:298e5cc3d985bfe7f81dc135f360abe0",
+            "amount": "250000",
+            "asset": "DCR",
+            "payTo": "03e7156ae33b0a208d0744199163177e909e80176e55d97a2f221ede0f934dd9ad",
+            "maxTimeoutSeconds": 3600,
+            "extra": {
+              "assetTransferMethod": "lightning",
+              "invoice": "lndcr2500u1pvjluezpp5qt2yngclhvn8ere496vk3fu78e0ujhqmh649qt7kg48tmedyhmwqdpqv33hydpsxgsxwmmvv3jkugrkv43hgmmjxqrrssdztqxz9z9ys3q59ml9270ej0t9wt62442s3tzzldns0a6j247qkkqzakysm9yz75xqze4a7r3h7tsys8tcugay7f8sru2l8a7s07srcqc5t8f7",
+              "paymentHash": "02d449a31fbb267c8f352e9968a79e3e5fc95c1bbeaa502fd6454ebde5a4bedc"
+            }
+          }
+        ],
+        "extensions": {
+          "l402": {
+            "info": {
+              "tokenTtlSeconds": 2592000
+            },
+            "schema": {
+              "$schema": "https://json-schema.org/draft/2020-12/schema",
+              "type": "object",
+              "properties": {
+                "tokenTtlSeconds": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "required": [
+                "tokenTtlSeconds"
+              ]
+            }
+          }
+        }
+      },
+      "jsonText": "{\"x402Version\":2,\"error\":\"Payment required\",\"resource\":{\"url\":\"https://api.example.com/v1/process\",\"description\":\"Example paid API call\",\"mimeType\":\"application/json\"},\"accepts\":[{\"scheme\":\"exact\",\"network\":\"bip122:298e5cc3d985bfe7f81dc135f360abe0\",\"amount\":\"250000\",\"asset\":\"DCR\",\"payTo\":\"03e7156ae33b0a208d0744199163177e909e80176e55d97a2f221ede0f934dd9ad\",\"maxTimeoutSeconds\":3600,\"extra\":{\"assetTransferMethod\":\"lightning\",\"invoice\":\"lndcr2500u1pvjluezpp5qt2yngclhvn8ere496vk3fu78e0ujhqmh649qt7kg48tmedyhmwqdpqv33hydpsxgsxwmmvv3jkugrkv43hgmmjxqrrssdztqxz9z9ys3q59ml9270ej0t9wt62442s3tzzldns0a6j247qkkqzakysm9yz75xqze4a7r3h7tsys8tcugay7f8sru2l8a7s07srcqc5t8f7\",\"paymentHash\":\"02d449a31fbb267c8f352e9968a79e3e5fc95c1bbeaa502fd6454ebde5a4bedc\"}}],\"extensions\":{\"l402\":{\"info\":{\"tokenTtlSeconds\":2592000},\"schema\":{\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"type\":\"object\",\"properties\":{\"tokenTtlSeconds\":{\"type\":\"integer\",\"minimum\":0}},\"required\":[\"tokenTtlSeconds\"]}}}}",
+      "base64": "eyJ4NDAyVmVyc2lvbiI6MiwiZXJyb3IiOiJQYXltZW50IHJlcXVpcmVkIiwicmVzb3VyY2UiOnsidXJsIjoiaHR0cHM6Ly9hcGkuZXhhbXBsZS5jb20vdjEvcHJvY2VzcyIsImRlc2NyaXB0aW9uIjoiRXhhbXBsZSBwYWlkIEFQSSBjYWxsIiwibWltZVR5cGUiOiJhcHBsaWNhdGlvbi9qc29uIn0sImFjY2VwdHMiOlt7InNjaGVtZSI6ImV4YWN0IiwibmV0d29yayI6ImJpcDEyMjoyOThlNWNjM2Q5ODViZmU3ZjgxZGMxMzVmMzYwYWJlMCIsImFtb3VudCI6IjI1MDAwMCIsImFzc2V0IjoiRENSIiwicGF5VG8iOiIwM2U3MTU2YWUzM2IwYTIwOGQwNzQ0MTk5MTYzMTc3ZTkwOWU4MDE3NmU1NWQ5N2EyZjIyMWVkZTBmOTM0ZGQ5YWQiLCJtYXhUaW1lb3V0U2Vjb25kcyI6MzYwMCwiZXh0cmEiOnsiYXNzZXRUcmFuc2Zlck1ldGhvZCI6ImxpZ2h0bmluZyIsImludm9pY2UiOiJsbmRjcjI1MDB1MXB2amx1ZXpwcDVxdDJ5bmdjbGh2bjhlcmU0OTZ2azNmdTc4ZTB1amhxbWg2NDlxdDdrZzQ4dG1lZHlobXdxZHBxdjMzaHlkcHN4Z3N4d21tdnYzamt1Z3JrdjQzaGdtbWp4cXJyc3NkenRxeHo5ejl5czNxNTltbDkyNzBlajB0OXd0NjI0NDJzM3R6emxkbnMwYTZqMjQ3cWtrcXpha3lzbTl5ejc1eHF6ZTRhN3IzaDd0c3lzOHRjdWdheTdmOHNydTJsOGE3czA3c3JjcWM1dDhmNyIsInBheW1lbnRIYXNoIjoiMDJkNDQ5YTMxZmJiMjY3YzhmMzUyZTk5NjhhNzllM2U1ZmM5NWMxYmJlYWE1MDJmZDY0NTRlYmRlNWE0YmVkYyJ9fV0sImV4dGVuc2lvbnMiOnsibDQwMiI6eyJpbmZvIjp7InRva2VuVHRsU2Vjb25kcyI6MjU5MjAwMH0sInNjaGVtYSI6eyIkc2NoZW1hIjoiaHR0cHM6Ly9qc29uLXNjaGVtYS5vcmcvZHJhZnQvMjAyMC0xMi9zY2hlbWEiLCJ0eXBlIjoib2JqZWN0IiwicHJvcGVydGllcyI6eyJ0b2tlblR0bFNlY29uZHMiOnsidHlwZSI6ImludGVnZXIiLCJtaW5pbXVtIjowfX0sInJlcXVpcmVkIjpbInRva2VuVHRsU2Vjb25kcyJdfX19fQ=="
+    },
+    {
+      "name": "payment-payload",
+      "type": "PaymentPayload header value",
+      "json": {
+        "x402Version": 2,
+        "resource": {
+          "url": "https://api.example.com/v1/process"
+        },
+        "accepted": {
+          "scheme": "exact",
+          "network": "bip122:298e5cc3d985bfe7f81dc135f360abe0",
+          "amount": "250000",
+          "asset": "DCR",
+          "payTo": "03e7156ae33b0a208d0744199163177e909e80176e55d97a2f221ede0f934dd9ad",
+          "maxTimeoutSeconds": 3600,
+          "extra": {
+            "assetTransferMethod": "lightning",
+            "invoice": "lndcr2500u1pvjluezpp5qt2yngclhvn8ere496vk3fu78e0ujhqmh649qt7kg48tmedyhmwqdpqv33hydpsxgsxwmmvv3jkugrkv43hgmmjxqrrssdztqxz9z9ys3q59ml9270ej0t9wt62442s3tzzldns0a6j247qkkqzakysm9yz75xqze4a7r3h7tsys8tcugay7f8sru2l8a7s07srcqc5t8f7",
+            "paymentHash": "02d449a31fbb267c8f352e9968a79e3e5fc95c1bbeaa502fd6454ebde5a4bedc"
+          }
+        },
+        "payload": {
+          "preimage": "1111111111111111111111111111111111111111111111111111111111111111",
+          "paymentHash": "02d449a31fbb267c8f352e9968a79e3e5fc95c1bbeaa502fd6454ebde5a4bedc"
+        }
+      },
+      "jsonText": "{\"x402Version\":2,\"resource\":{\"url\":\"https://api.example.com/v1/process\"},\"accepted\":{\"scheme\":\"exact\",\"network\":\"bip122:298e5cc3d985bfe7f81dc135f360abe0\",\"amount\":\"250000\",\"asset\":\"DCR\",\"payTo\":\"03e7156ae33b0a208d0744199163177e909e80176e55d97a2f221ede0f934dd9ad\",\"maxTimeoutSeconds\":3600,\"extra\":{\"assetTransferMethod\":\"lightning\",\"invoice\":\"lndcr2500u1pvjluezpp5qt2yngclhvn8ere496vk3fu78e0ujhqmh649qt7kg48tmedyhmwqdpqv33hydpsxgsxwmmvv3jkugrkv43hgmmjxqrrssdztqxz9z9ys3q59ml9270ej0t9wt62442s3tzzldns0a6j247qkkqzakysm9yz75xqze4a7r3h7tsys8tcugay7f8sru2l8a7s07srcqc5t8f7\",\"paymentHash\":\"02d449a31fbb267c8f352e9968a79e3e5fc95c1bbeaa502fd6454ebde5a4bedc\"}},\"payload\":{\"preimage\":\"1111111111111111111111111111111111111111111111111111111111111111\",\"paymentHash\":\"02d449a31fbb267c8f352e9968a79e3e5fc95c1bbeaa502fd6454ebde5a4bedc\"}}",
+      "base64": "eyJ4NDAyVmVyc2lvbiI6MiwicmVzb3VyY2UiOnsidXJsIjoiaHR0cHM6Ly9hcGkuZXhhbXBsZS5jb20vdjEvcHJvY2VzcyJ9LCJhY2NlcHRlZCI6eyJzY2hlbWUiOiJleGFjdCIsIm5ldHdvcmsiOiJiaXAxMjI6Mjk4ZTVjYzNkOTg1YmZlN2Y4MWRjMTM1ZjM2MGFiZTAiLCJhbW91bnQiOiIyNTAwMDAiLCJhc3NldCI6IkRDUiIsInBheVRvIjoiMDNlNzE1NmFlMzNiMGEyMDhkMDc0NDE5OTE2MzE3N2U5MDllODAxNzZlNTVkOTdhMmYyMjFlZGUwZjkzNGRkOWFkIiwibWF4VGltZW91dFNlY29uZHMiOjM2MDAsImV4dHJhIjp7ImFzc2V0VHJhbnNmZXJNZXRob2QiOiJsaWdodG5pbmciLCJpbnZvaWNlIjoibG5kY3IyNTAwdTFwdmpsdWV6cHA1cXQyeW5nY2xodm44ZXJlNDk2dmszZnU3OGUwdWpocW1oNjQ5cXQ3a2c0OHRtZWR5aG13cWRwcXYzM2h5ZHBzeGdzeHdtbXZ2M2prdWdya3Y0M2hnbW1qeHFycnNzZHp0cXh6OXo5eXMzcTU5bWw5MjcwZWowdDl3dDYyNDQyczN0enpsZG5zMGE2ajI0N3Fra3F6YWt5c205eXo3NXhxemU0YTdyM2g3dHN5czh0Y3VnYXk3ZjhzcnUybDhhN3MwN3NyY3FjNXQ4ZjciLCJwYXltZW50SGFzaCI6IjAyZDQ0OWEzMWZiYjI2N2M4ZjM1MmU5OTY4YTc5ZTNlNWZjOTVjMWJiZWFhNTAyZmQ2NDU0ZWJkZTVhNGJlZGMifX0sInBheWxvYWQiOnsicHJlaW1hZ2UiOiIxMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExIiwicGF5bWVudEhhc2giOiIwMmQ0NDlhMzFmYmIyNjdjOGYzNTJlOTk2OGE3OWUzZTVmYzk1YzFiYmVhYTUwMmZkNjQ1NGViZGU1YTRiZWRjIn19"
+    },
+    {
+      "name": "settlement-success",
+      "type": "SettlementResponse header value",
+      "json": {
+        "success": true,
+        "transaction": "02d449a31fbb267c8f352e9968a79e3e5fc95c1bbeaa502fd6454ebde5a4bedc",
+        "network": "bip122:298e5cc3d985bfe7f81dc135f360abe0",
+        "amount": "250000",
+        "extensions": {
+          "l402": {
+            "info": {
+              "authorization": "L402 AgJCAAAC1EmjH7smfI81Lplop54+X8lcG76qUC/WRU695aS+3DMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzAAISc2VydmljZXM9ZXhhbXBsZTowAAIfZXhhbXBsZV9jYXBhYmlsaXRpZXM9cmVhZCx3cml0ZQACHmV4YW1wbGVfdmFsaWRfdW50aWw9MTg5MzQ1NjAwMAAABiCSBQsxLuK5mOeNoMrQaWitDmwvd963hgMT3oDx+WxKFA==:1111111111111111111111111111111111111111111111111111111111111111",
+              "validUntil": 1893456000
+            },
+            "schema": {
+              "$schema": "https://json-schema.org/draft/2020-12/schema",
+              "type": "object",
+              "properties": {
+                "authorization": {
+                  "type": "string"
+                },
+                "validUntil": {
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "authorization"
+              ]
+            }
+          }
+        }
+      },
+      "jsonText": "{\"success\":true,\"transaction\":\"02d449a31fbb267c8f352e9968a79e3e5fc95c1bbeaa502fd6454ebde5a4bedc\",\"network\":\"bip122:298e5cc3d985bfe7f81dc135f360abe0\",\"amount\":\"250000\",\"extensions\":{\"l402\":{\"info\":{\"authorization\":\"L402 AgJCAAAC1EmjH7smfI81Lplop54+X8lcG76qUC/WRU695aS+3DMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzAAISc2VydmljZXM9ZXhhbXBsZTowAAIfZXhhbXBsZV9jYXBhYmlsaXRpZXM9cmVhZCx3cml0ZQACHmV4YW1wbGVfdmFsaWRfdW50aWw9MTg5MzQ1NjAwMAAABiCSBQsxLuK5mOeNoMrQaWitDmwvd963hgMT3oDx+WxKFA==:1111111111111111111111111111111111111111111111111111111111111111\",\"validUntil\":1893456000},\"schema\":{\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"type\":\"object\",\"properties\":{\"authorization\":{\"type\":\"string\"},\"validUntil\":{\"type\":\"integer\"}},\"required\":[\"authorization\"]}}}}",
+      "base64": "eyJzdWNjZXNzIjp0cnVlLCJ0cmFuc2FjdGlvbiI6IjAyZDQ0OWEzMWZiYjI2N2M4ZjM1MmU5OTY4YTc5ZTNlNWZjOTVjMWJiZWFhNTAyZmQ2NDU0ZWJkZTVhNGJlZGMiLCJuZXR3b3JrIjoiYmlwMTIyOjI5OGU1Y2MzZDk4NWJmZTdmODFkYzEzNWYzNjBhYmUwIiwiYW1vdW50IjoiMjUwMDAwIiwiZXh0ZW5zaW9ucyI6eyJsNDAyIjp7ImluZm8iOnsiYXV0aG9yaXphdGlvbiI6Ikw0MDIgQWdKQ0FBQUMxRW1qSDdzbWZJODFMcGxvcDU0K1g4bGNHNzZxVUMvV1JVNjk1YVMrM0RNek16TXpNek16TXpNek16TXpNek16TXpNek16TXpNek16TXpNek16TXpBQUlTYzJWeWRtbGpaWE05WlhoaGJYQnNaVG93QUFJZlpYaGhiWEJzWlY5allYQmhZbWxzYVhScFpYTTljbVZoWkN4M2NtbDBaUUFDSG1WNFlXMXdiR1ZmZG1Gc2FXUmZkVzUwYVd3OU1UZzVNelExTmpBd01BQUFCaUNTQlFzeEx1SzVtT2VOb01yUWFXaXREbXd2ZDk2M2hnTVQzb0R4K1d4S0ZBPT06MTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMSIsInZhbGlkVW50aWwiOjE4OTM0NTYwMDB9LCJzY2hlbWEiOnsiJHNjaGVtYSI6Imh0dHBzOi8vanNvbi1zY2hlbWEub3JnL2RyYWZ0LzIwMjAtMTIvc2NoZW1hIiwidHlwZSI6Im9iamVjdCIsInByb3BlcnRpZXMiOnsiYXV0aG9yaXphdGlvbiI6eyJ0eXBlIjoic3RyaW5nIn0sInZhbGlkVW50aWwiOnsidHlwZSI6ImludGVnZXIifX0sInJlcXVpcmVkIjpbImF1dGhvcml6YXRpb24iXX19fX0=",
+      "note": "transaction is the payment hash (synthetic id \u2014 never the preimage); extensions.l402 delivers the credential from l402.json."
+    },
+    {
+      "name": "settlement-failure",
+      "type": "SettlementResponse header value",
+      "json": {
+        "success": false,
+        "errorReason": "invalid_exact_decred_payload_preimage_mismatch",
+        "transaction": "",
+        "network": "bip122:298e5cc3d985bfe7f81dc135f360abe0"
+      },
+      "jsonText": "{\"success\":false,\"errorReason\":\"invalid_exact_decred_payload_preimage_mismatch\",\"transaction\":\"\",\"network\":\"bip122:298e5cc3d985bfe7f81dc135f360abe0\"}",
+      "base64": "eyJzdWNjZXNzIjpmYWxzZSwiZXJyb3JSZWFzb24iOiJpbnZhbGlkX2V4YWN0X2RlY3JlZF9wYXlsb2FkX3ByZWltYWdlX21pc21hdGNoIiwidHJhbnNhY3Rpb24iOiIiLCJuZXR3b3JrIjoiYmlwMTIyOjI5OGU1Y2MzZDk4NWJmZTdmODFkYzEzNWYzNjBhYmUwIn0="
+    },
+    {
+      "name": "mcp-payment-required",
+      "type": "MCP tool result",
+      "json": {
+        "isError": true,
+        "structuredContent": {
+          "x402Version": 2,
+          "error": "Payment required",
+          "resource": {
+            "url": "mcp://tool/process",
+            "description": "Example payable MCP tool",
+            "mimeType": "application/json"
+          },
+          "accepts": [
+            {
+              "scheme": "exact",
+              "network": "bip122:298e5cc3d985bfe7f81dc135f360abe0",
+              "amount": "250000",
+              "asset": "DCR",
+              "payTo": "03e7156ae33b0a208d0744199163177e909e80176e55d97a2f221ede0f934dd9ad",
+              "maxTimeoutSeconds": 3600,
+              "extra": {
+                "assetTransferMethod": "lightning",
+                "invoice": "lndcr2500u1pvjluezpp5qt2yngclhvn8ere496vk3fu78e0ujhqmh649qt7kg48tmedyhmwqdpqv33hydpsxgsxwmmvv3jkugrkv43hgmmjxqrrssdztqxz9z9ys3q59ml9270ej0t9wt62442s3tzzldns0a6j247qkkqzakysm9yz75xqze4a7r3h7tsys8tcugay7f8sru2l8a7s07srcqc5t8f7",
+                "paymentHash": "02d449a31fbb267c8f352e9968a79e3e5fc95c1bbeaa502fd6454ebde5a4bedc"
+              }
+            }
+          ],
+          "extensions": {
+            "l402": {
+              "info": {
+                "tokenTtlSeconds": 2592000
+              },
+              "schema": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "type": "object",
+                "properties": {
+                  "tokenTtlSeconds": {
+                    "type": "integer",
+                    "minimum": 0
+                  }
+                },
+                "required": [
+                  "tokenTtlSeconds"
+                ]
+              }
+            }
+          }
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"x402Version\":2,\"error\":\"Payment required\",\"resource\":{\"url\":\"mcp://tool/process\",\"description\":\"Example payable MCP tool\",\"mimeType\":\"application/json\"},\"accepts\":[{\"scheme\":\"exact\",\"network\":\"bip122:298e5cc3d985bfe7f81dc135f360abe0\",\"amount\":\"250000\",\"asset\":\"DCR\",\"payTo\":\"03e7156ae33b0a208d0744199163177e909e80176e55d97a2f221ede0f934dd9ad\",\"maxTimeoutSeconds\":3600,\"extra\":{\"assetTransferMethod\":\"lightning\",\"invoice\":\"lndcr2500u1pvjluezpp5qt2yngclhvn8ere496vk3fu78e0ujhqmh649qt7kg48tmedyhmwqdpqv33hydpsxgsxwmmvv3jkugrkv43hgmmjxqrrssdztqxz9z9ys3q59ml9270ej0t9wt62442s3tzzldns0a6j247qkkqzakysm9yz75xqze4a7r3h7tsys8tcugay7f8sru2l8a7s07srcqc5t8f7\",\"paymentHash\":\"02d449a31fbb267c8f352e9968a79e3e5fc95c1bbeaa502fd6454ebde5a4bedc\"}}],\"extensions\":{\"l402\":{\"info\":{\"tokenTtlSeconds\":2592000},\"schema\":{\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"type\":\"object\",\"properties\":{\"tokenTtlSeconds\":{\"type\":\"integer\",\"minimum\":0}},\"required\":[\"tokenTtlSeconds\"]}}}}"
+          }
+        ]
+      },
+      "note": "MCP transport: no base64 \u2014 the object rides in the JSON-RPC tool result. content[0].text MUST be the JSON serialization of structuredContent."
+    }
+  ]
+}

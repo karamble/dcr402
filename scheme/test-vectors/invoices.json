@@ -1,0 +1,94 @@
+{
+  "description": "Decred BOLT11 decode vectors for scheme_exact_dcr.md. The golden vector is generated deterministically by tools/gen_golden_invoice.go; the rest are verbatim from the dcrlnd zpay32 test suite. All destination keys are the published BOLT11 test key \u2014 NEVER send funds to any address or invoice in this file.",
+  "source": "github.com/decred/dcrlnd zpay32/invoice_test.go @ d11b4857; golden: tools/gen_golden_invoice.go",
+  "vectors": [
+    {
+      "name": "golden-mainnet-2500u",
+      "network": "bip122:298e5cc3d985bfe7f81dc135f360abe0",
+      "hrp": "lndcr",
+      "invoice": "lndcr2500u1pvjluezpp5qt2yngclhvn8ere496vk3fu78e0ujhqmh649qt7kg48tmedyhmwqdpqv33hydpsxgsxwmmvv3jkugrkv43hgmmjxqrrssdztqxz9z9ys3q59ml9270ej0t9wt62442s3tzzldns0a6j247qkkqzakysm9yz75xqze4a7r3h7tsys8tcugay7f8sru2l8a7s07srcqc5t8f7",
+      "paymentHash": "02d449a31fbb267c8f352e9968a79e3e5fc95c1bbeaa502fd6454ebde5a4bedc",
+      "preimage": "1111111111111111111111111111111111111111111111111111111111111111",
+      "destination": "03e7156ae33b0a208d0744199163177e909e80176e55d97a2f221ede0f934dd9ad",
+      "milliAtoms": "250000000",
+      "amountAtoms": "250000",
+      "timestamp": 1496314658,
+      "expirySeconds": 3600,
+      "descriptionField": "dcr402 golden vector",
+      "notes": "The only vector with a known preimage; anchors the x402 and L402 vectors."
+    },
+    {
+      "name": "mainnet-2500u-coffee",
+      "network": "bip122:298e5cc3d985bfe7f81dc135f360abe0",
+      "hrp": "lndcr",
+      "invoice": "lndcr2500u1pvjluezpp5qqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqypqdq5xysxxatsyp3k7enxv4jsxqzpumkqh4xxuwhghf0dy5mglqnnttyg46a3ursmwv33dlwvmvkt9d8z9k7h4nhm0uun3a8hly8e92hd926j0tm0afrnzqeyapnlqhrx6cugphffhw0",
+      "paymentHash": "0001020304050607080900010203040506070809000102030405060708090102",
+      "destination": "03e7156ae33b0a208d0744199163177e909e80176e55d97a2f221ede0f934dd9ad",
+      "milliAtoms": "250000000",
+      "amountAtoms": "250000",
+      "timestamp": 1496314658,
+      "expirySeconds": 60,
+      "descriptionField": "1 cup coffee"
+    },
+    {
+      "name": "mainnet-24dcr-nfield",
+      "network": "bip122:298e5cc3d985bfe7f81dc135f360abe0",
+      "hrp": "lndcr",
+      "invoice": "lndcr241pveeq09pp5qqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqypqdqqnp4q0n326hr8v9zprg8gsvezcch06gfaqqhde2aj730yg0durunfhv66husxpmqj9fh878hrkccqzvazqk2mhj0fdtjyngvhz5vje86eh39zu8cmp7k0kml38p3d3ujyuuhqe32kfgdt98t5e8r74xmwk53u5mqqm45579",
+      "paymentHash": "0001020304050607080900010203040506070809000102030405060708090102",
+      "destination": "03e7156ae33b0a208d0744199163177e909e80176e55d97a2f221ede0f934dd9ad",
+      "milliAtoms": "2400000000000",
+      "amountAtoms": "2400000000",
+      "timestamp": 1503429093,
+      "notes": "Destination via the n tagged field (not signature recovery); no x field \u2014 effective expiry defaults to 3600 s."
+    },
+    {
+      "name": "mainnet-20m-description-hash",
+      "network": "bip122:298e5cc3d985bfe7f81dc135f360abe0",
+      "hrp": "lndcr",
+      "invoice": "lndcr20m1pvjluezpp5qqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqypqhp5p0y6smqsu95wrj2v9dzntwn88pmz4ck92063nkhxju832w0tr5hs3uzs6up5wjzjy7pl352h0rd0tujcwrvej3035gs59x2funkpx44z7r3ku04xf8xgvlxrc4dhaut5t9yxvwv2kvdge6g25zk6p87550qp0c2rnh",
+      "paymentHash": "0001020304050607080900010203040506070809000102030405060708090102",
+      "destination": "03e7156ae33b0a208d0744199163177e909e80176e55d97a2f221ede0f934dd9ad",
+      "milliAtoms": "2000000000",
+      "amountAtoms": "2000000",
+      "timestamp": 1496314658,
+      "notes": "Carries a description hash (h field) instead of a description."
+    },
+    {
+      "name": "testnet3-20m-fallback",
+      "network": "bip122:a649dce53918caf422e9c711c858837e",
+      "hrp": "lntdcr",
+      "invoice": "lntdcr20m1pvjluezpp5qqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqypqhp5p0y6smqsu95wrj2v9dzntwn88pmz4ck92063nkhxju832w0tr5hsfpp3qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqpf094cd5v782dw6hu4uu2nadncanzy8emn3xzmp77n0nnzyrwzzxuel7sqyzgmrpvl4p3hncrztujznemavdwy38sa9wdmlrnzcdlscqytjln6",
+      "paymentHash": "0001020304050607080900010203040506070809000102030405060708090102",
+      "destination": "03e7156ae33b0a208d0744199163177e909e80176e55d97a2f221ede0f934dd9ad",
+      "milliAtoms": "2000000000",
+      "amountAtoms": "2000000",
+      "timestamp": 1496314658,
+      "notes": "Testnet3 prefix binding; includes an on-chain fallback address (f field)."
+    },
+    {
+      "name": "simnet-24dcr",
+      "network": "bip122:6bef82c645999585f7255cb02672921a",
+      "hrp": "lnsdcr",
+      "invoice": "lnsdcr241pvjluezpp5qqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqypqdqqnp4q0n326hr8v9zprg8gsvezcch06gfaqqhde2aj730yg0durunfhv66zh5xhvtchse36pt88lj4djy8g58lx26xfz3np7humcd9594rmgv92nws6vllf9mhq670x9nrwhjzw0shsklr6gq235whh9x9089ue7gpjur6cc",
+      "paymentHash": "0001020304050607080900010203040506070809000102030405060708090102",
+      "destination": "03e7156ae33b0a208d0744199163177e909e80176e55d97a2f221ede0f934dd9ad",
+      "milliAtoms": "2400000000000",
+      "amountAtoms": "2400000000",
+      "timestamp": 1496314658,
+      "notes": "Simnet prefix binding (dev-only network)."
+    },
+    {
+      "name": "mainnet-amountless-donation",
+      "network": "bip122:298e5cc3d985bfe7f81dc135f360abe0",
+      "hrp": "lndcr",
+      "invoice": "lndcr1pvjluezpp5qqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqypqdq5xysxxatsyp3k7enxv4jsmvp0ygkvzd3zh9wkfj59cuze0se5fzuh4f7rysdukv68n6fafa45sudrzg8d33paaw50zczd5mzmppqaalvzneu0yd3zfrvzhnfzpkgppyrza2",
+      "paymentHash": "0001020304050607080900010203040506070809000102030405060708090102",
+      "destination": "03e7156ae33b0a208d0744199163177e909e80176e55d97a2f221ede0f934dd9ad",
+      "timestamp": 1496314658,
+      "descriptionField": "1 cup coffee",
+      "mustReject": true,
+      "mustRejectReason": "invoice carries no amount \u2014 verification rule 6 (invalid_exact_decred_invoice_amount_mismatch)"
+    }
+  ]
+}

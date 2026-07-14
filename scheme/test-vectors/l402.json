@@ -1,0 +1,35 @@
+{
+  "description": "Deterministic L402 minting vectors for the dual envelope (../l402-dual-envelope.md). All values re-derivable from the constants; regenerate with tools/gen_l402.py.",
+  "constants": {
+    "preimage": "1111111111111111111111111111111111111111111111111111111111111111",
+    "rootKey": "2222222222222222222222222222222222222222222222222222222222222222",
+    "tokenId": "3333333333333333333333333333333333333333333333333333333333333333",
+    "identifierVersion": 0,
+    "caveats": [
+      "services=example:0",
+      "example_capabilities=read,write",
+      "example_valid_until=1893456000"
+    ],
+    "invoice": "lndcr2500u1pvjluezpp5qt2yngclhvn8ere496vk3fu78e0ujhqmh649qt7kg48tmedyhmwqdpqv33hydpsxgsxwmmvv3jkugrkv43hgmmjxqrrssdztqxz9z9ys3q59ml9270ej0t9wt62442s3tzzldns0a6j247qkkqzakysm9yz75xqze4a7r3h7tsys8tcugay7f8sru2l8a7s07srcqc5t8f7"
+  },
+  "derived": {
+    "paymentHash": "02d449a31fbb267c8f352e9968a79e3e5fc95c1bbeaa502fd6454ebde5a4bedc",
+    "identifier": "000002d449a31fbb267c8f352e9968a79e3e5fc95c1bbeaa502fd6454ebde5a4bedc3333333333333333333333333333333333333333333333333333333333333333",
+    "hmacChain": [
+      "36a5ecbe12ad1d3f9c15c445ac17a1d976884b0a99813b8bc1d01669e7ed0168",
+      "d729ed688978b6332d52d63af321efeb8f6312f6ecccc624d278026dd635ac9f",
+      "311f7d80201e6f51ef8b6ab2c1ac46fc5e49329f5d44f4e576fdfbd30aaf29fa",
+      "92050b312ee2b998e78da0cad06968ad0e6c2f77deb7860313de80f1f96c4a14"
+    ],
+    "signature": "92050b312ee2b998e78da0cad06968ad0e6c2f77deb7860313de80f1f96c4a14",
+    "macaroonHex": "020242000002d449a31fbb267c8f352e9968a79e3e5fc95c1bbeaa502fd6454ebde5a4bedc333333333333333333333333333333333333333333333333333333333333333300021273657276696365733d6578616d706c653a3000021f6578616d706c655f6361706162696c69746965733d726561642c777269746500021e6578616d706c655f76616c69645f756e74696c3d313839333435363030300000062092050b312ee2b998e78da0cad06968ad0e6c2f77deb7860313de80f1f96c4a14",
+    "macaroonBase64": "AgJCAAAC1EmjH7smfI81Lplop54+X8lcG76qUC/WRU695aS+3DMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzAAISc2VydmljZXM9ZXhhbXBsZTowAAIfZXhhbXBsZV9jYXBhYmlsaXRpZXM9cmVhZCx3cml0ZQACHmV4YW1wbGVfdmFsaWRfdW50aWw9MTg5MzQ1NjAwMAAABiCSBQsxLuK5mOeNoMrQaWitDmwvd963hgMT3oDx+WxKFA=="
+  },
+  "headers": {
+    "challenge": [
+      "WWW-Authenticate: LSAT macaroon=\"AgJCAAAC1EmjH7smfI81Lplop54+X8lcG76qUC/WRU695aS+3DMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzAAISc2VydmljZXM9ZXhhbXBsZTowAAIfZXhhbXBsZV9jYXBhYmlsaXRpZXM9cmVhZCx3cml0ZQACHmV4YW1wbGVfdmFsaWRfdW50aWw9MTg5MzQ1NjAwMAAABiCSBQsxLuK5mOeNoMrQaWitDmwvd963hgMT3oDx+WxKFA==\", invoice=\"lndcr2500u1pvjluezpp5qt2yngclhvn8ere496vk3fu78e0ujhqmh649qt7kg48tmedyhmwqdpqv33hydpsxgsxwmmvv3jkugrkv43hgmmjxqrrssdztqxz9z9ys3q59ml9270ej0t9wt62442s3tzzldns0a6j247qkkqzakysm9yz75xqze4a7r3h7tsys8tcugay7f8sru2l8a7s07srcqc5t8f7\"",
+      "WWW-Authenticate: L402 macaroon=\"AgJCAAAC1EmjH7smfI81Lplop54+X8lcG76qUC/WRU695aS+3DMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzAAISc2VydmljZXM9ZXhhbXBsZTowAAIfZXhhbXBsZV9jYXBhYmlsaXRpZXM9cmVhZCx3cml0ZQACHmV4YW1wbGVfdmFsaWRfdW50aWw9MTg5MzQ1NjAwMAAABiCSBQsxLuK5mOeNoMrQaWitDmwvd963hgMT3oDx+WxKFA==\", invoice=\"lndcr2500u1pvjluezpp5qt2yngclhvn8ere496vk3fu78e0ujhqmh649qt7kg48tmedyhmwqdpqv33hydpsxgsxwmmvv3jkugrkv43hgmmjxqrrssdztqxz9z9ys3q59ml9270ej0t9wt62442s3tzzldns0a6j247qkkqzakysm9yz75xqze4a7r3h7tsys8tcugay7f8sru2l8a7s07srcqc5t8f7\""
+    ],
+    "authorization": "Authorization: L402 AgJCAAAC1EmjH7smfI81Lplop54+X8lcG76qUC/WRU695aS+3DMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzAAISc2VydmljZXM9ZXhhbXBsZTowAAIfZXhhbXBsZV9jYXBhYmlsaXRpZXM9cmVhZCx3cml0ZQACHmV4YW1wbGVfdmFsaWRfdW50aWw9MTg5MzQ1NjAwMAAABiCSBQsxLuK5mOeNoMrQaWitDmwvd963hgMT3oDx+WxKFA==:1111111111111111111111111111111111111111111111111111111111111111"
+  }
+}

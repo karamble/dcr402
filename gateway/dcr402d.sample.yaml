@@ -1,0 +1,56 @@
+# dcr402d sample configuration.
+#
+# Prices are decimal DCR strings ("0.002" = 200,000 atoms). Amounts are
+# parsed exactly — max 8 decimal places, no floats involved.
+
+listen: ":8443"
+# tls_cert: /etc/dcr402d/tls.cert       # both set → TLS listener
+# tls_key:  /etc/dcr402d/tls.key
+
+network: mainnet                        # mainnet | testnet3 | simnet
+service: myservice                      # names L402 caveats + challenges
+payto: 03aabbcc...                      # dcrlnd identity pubkey (lncli getinfo)
+store: /var/lib/dcr402d/gateway.db      # SQLite; ledger lives beside it
+
+ln:
+  host: 127.0.0.1:10009
+  tls_cert: /home/user/.dcrlnd/tls.cert
+  # The stock invoice.macaroon is all dcr402d needs — no spend permissions.
+  macaroon: /home/user/.dcrlnd/data/chain/decred/mainnet/invoice.macaroon
+
+credits:
+  enabled: true
+  onchain: true                         # offer on-chain top-ups too
+  confirmations: 2
+
+topup:                                  # bounds for /_dcr402/topup (DCR)
+  min: "0.001"
+  max: "10"
+  default: "0.01"
+
+web:
+  status_page: true                     # /_dcr402/ + /_dcr402/info
+
+upstreams:
+  # A plain HTTP API, per-call gated: each priced request answers 402 until
+  # a Lightning proof (or a valid L402 credential) is presented.
+  - route: /api/
+    target: http://127.0.0.1:9000
+    mode: percall
+    prices:
+      "GET /api/v1/search": "0.001"
+      "POST /api/v1/process": "0.02"
+    # price_default: "0.002"            # price everything else under /api/
+                                        # (omit → unlisted paths are free)
+
+  # A Streamable-HTTP MCP server, credit-gated: initialize/tools/list/etc.
+  # are forwarded free; tools/call is charged per tool against the caller's
+  # prepaid account (top up at /_dcr402/topup).
+  - route: /mcp
+    target: http://127.0.0.1:9001/mcp
+    mcp: true
+    mode: credits
+    tool_prices:
+      process: "0.02"
+    tool_price_default: "0.002"
+    free_tools: [about, balance]

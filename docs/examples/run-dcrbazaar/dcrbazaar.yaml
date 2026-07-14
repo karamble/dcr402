@@ -1,0 +1,16 @@
+# A minimal dcrbazaar configuration: one network, discovery enabled, open.
+# See ../../../bazaar/dcrbazaar.sample.yaml for every option.
+
+listen: "127.0.0.1:8444"
+networks: [mainnet]            # mainnet | testnet3 | simnet (list several to serve all)
+
+# Persist notarized settlements and the discovery index. Omit for in-memory.
+store: /var/lib/dcrbazaar/dcrbazaar.db
+
+discovery:
+  enabled: true                # serve /discovery/resources | search | submit
+  public_submit: true          # false requires an API key to submit
+
+# Leave empty for an open, self-hosted facilitator. When set, /verify and
+# /settle require an X-API-Key header.
+api_keys: []

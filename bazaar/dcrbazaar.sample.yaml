@@ -1,0 +1,42 @@
+# dcrbazaar sample configuration.
+#
+# dcrbazaar is the dcr402 discovery index and non-custodial payment-verification
+# service. It is NOT a settlement facilitator: Decred payments settle
+# peer-to-peer (lightning) or by the payer's own on-chain broadcast, so
+# dcrbazaar holds no keys and moves no funds. It (1) indexes DCR-payable
+# resources for discovery and (2) offers verify-as-a-service on the x402 v2
+# endpoints - lightning (stateless preimage check) and, when enabled below,
+# on-chain (confirmed by reading the chain via dcrdata). Wire behavior is
+# specified in ../scheme/.
+
+listen: ":8444"
+# tls_cert: /etc/dcrbazaar/tls.cert        # both set -> TLS listener
+# tls_key:  /etc/dcrbazaar/tls.key
+
+# Networks this service verifies for. /verify and /settle accept a payment only
+# for a configured network; /supported advertises them all.
+networks:
+  - mainnet                             # mainnet | testnet3 | simnet
+
+# SQLite path for notarized settlements and the discovery index. Omit to keep
+# everything in memory (lost on restart).
+store: /var/lib/dcrbazaar/dcrbazaar.db
+
+discovery:
+  enabled: true                         # serve /discovery/resources|search|submit
+  public_submit: true                   # false requires an API key to submit
+
+# On-chain Decred verify-as-a-service. When enabled, /verify and /settle also
+# accept the onchain method: dcrbazaar confirms a payer-broadcast deposit by
+# reading the chain through a dcrdata Insight API (read-only, non-custodial).
+# The dcrdata_url MUST match the served network.
+onchain:
+  enabled: false
+  dcrdata_url: "https://dcrdata.decred.org"
+  min_confs: 1                          # floor; effective = max(this, challenge confirmations)
+
+# When set, /verify and /settle (and non-public submit) require a header:
+#   X-API-Key: <key>
+# Leave empty for an open, self-hosted service.
+api_keys: []
+#  - "replace-with-a-strong-key"
