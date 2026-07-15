@@ -15,6 +15,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
+	"strings"
 	"time"
 
 	"github.com/karamble/dcr402/lib/l402"
@@ -69,6 +71,13 @@ type Config struct {
 	// MCPDiscovery optionally returns the bazaar discovery extension for an
 	// MCP tool, attached to the tool's 402. nil advertises no discovery.
 	MCPDiscovery func(tool string) *x402.Extension
+	// MCPServerURL is the server's public streamable-HTTP MCP endpoint
+	// (e.g. "https://api.example.com/mcp"). When set, MCP challenges carry
+	// it as resource.url with the tool identified by the bazaar discovery
+	// extension, so facilitators catalog a connectable endpoint; empty
+	// falls back to the host-less mcp://tool/<name> convention. Optional;
+	// absolute http(s) when set. A trailing slash is trimmed.
+	MCPServerURL string
 	// PaymentID enables the payment-identifier idempotency extension.
 	PaymentID PaymentIDConfig
 	// OfferReceiptKey, when set, signs offers in the 402 and a receipt in the
@@ -109,6 +118,13 @@ func New(cfg Config) (*Gate, error) {
 	}
 	if cfg.TopupPath == "" {
 		cfg.TopupPath = "/topup"
+	}
+	if cfg.MCPServerURL != "" {
+		cfg.MCPServerURL = strings.TrimRight(cfg.MCPServerURL, "/")
+		u, err := url.Parse(cfg.MCPServerURL)
+		if err != nil || (u.Scheme != "http" && u.Scheme != "https") || u.Host == "" {
+			return nil, fmt.Errorf("dcr402: Config.MCPServerURL must be an absolute http(s) URL")
+		}
 	}
 	return &Gate{cfg: cfg}, nil
 }
@@ -246,7 +262,7 @@ func (g *Gate) servePayment(ctx context.Context, w http.ResponseWriter, r *http.
 // respondChallenge emits the dual challenge (annex §2) with the given
 // status: WWW-Authenticate LSAT, WWW-Authenticate L402, PAYMENT-REQUIRED.
 func (g *Gate) respondChallenge(w http.ResponseWriter, r *http.Request, amountAtoms int64, status int, note string) {
-	art, err := g.buildChallenge(r.Context(), g.resourceFor(r), amountAtoms, g.discoveryExtensions(r))
+	art, err := g.buildChallenge(r.Context(), g.resourceFor(r), "", amountAtoms, g.discoveryExtensions(r))
 	if err != nil {
 		http.Error(w, "building payment challenge", http.StatusInternalServerError)
 		return
@@ -281,7 +297,7 @@ func (g *Gate) respondPaymentFailure(w http.ResponseWriter, r *http.Request, amo
 		})
 		return
 	}
-	if art, err := g.buildChallenge(r.Context(), g.resourceFor(r), amountAtoms, g.discoveryExtensions(r)); err == nil {
+	if art, err := g.buildChallenge(r.Context(), g.resourceFor(r), "", amountAtoms, g.discoveryExtensions(r)); err == nil {
 		g.writeChallengeHeaders(w, art)
 	}
 	w.WriteHeader(http.StatusPaymentRequired)

@@ -87,7 +87,7 @@ func Build(cfg *Config, deps Deps) (*Gateway, error) {
 			return &ext
 		},
 		MCPDiscovery: func(tool string) *x402.Extension {
-			ext := dcr402.BuildMCPDiscovery(tool, nil, "", "", nil)
+			ext := dcr402.BuildMCPDiscovery(tool, nil, "", "streamable-http", nil)
 			return &ext
 		},
 	})

@@ -2,6 +2,7 @@ package dcr402
 
 import (
 	"context"
+	"encoding/hex"
 	"encoding/json"
 	"testing"
 
@@ -279,5 +280,92 @@ func TestFetchPaidMCPRealErrorSurfaces(t *testing.T) {
 	}
 	if called {
 		t.Fatal("payer must not run for a non-payment tool error")
+	}
+}
+
+// TestMCPResourceURLFallback pins the wire-URL selection: the server
+// endpoint when known, the host-less convention otherwise.
+func TestMCPResourceURLFallback(t *testing.T) {
+	if got := MCPResourceURL("", "process"); got != "mcp://tool/process" {
+		t.Fatalf("fallback = %q", got)
+	}
+	if got := MCPResourceURL("https://api.example.com/mcp", "process"); got != "https://api.example.com/mcp" {
+		t.Fatalf("server url = %q", got)
+	}
+}
+
+// TestMCPChallengeAt checks the wire/bind split: the 402 advertises the
+// server endpoint while the stored challenge stays bound to the per-tool
+// key, and the bound proof still settles.
+func TestMCPChallengeAt(t *testing.T) {
+	ln := &fakeLN{}
+	st := store.NewMemory()
+	g := newTestGate(t, ln, st, nil)
+
+	res, err := g.MCPChallengeAt(context.Background(), "https://api.example.com/mcp", "get_preview", "preview", goldenAtoms)
+	if err != nil {
+		t.Fatal(err)
+	}
+	pr, err := ParsePaymentRequiredResult(res.StructuredContent)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if pr.Resource.URL != "https://api.example.com/mcp" {
+		t.Fatalf("wire resource url = %q", pr.Resource.URL)
+	}
+
+	var hash [32]byte
+	raw, _ := hex.DecodeString(goldenHash)
+	copy(hash[:], raw)
+	ch, err := st.GetChallenge(context.Background(), hash)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if ch.Resource != MCPToolURL("get_preview") {
+		t.Fatalf("stored bind = %q, want %q", ch.Resource, MCPToolURL("get_preview"))
+	}
+
+	// The decoupled challenge remains settleable by its proof.
+	ln.Pay()
+	pp := x402.PaymentPayload{
+		X402Version: 2,
+		Accepted:    pr.Accepts[0],
+		Resource:    &pr.Resource,
+		Payload:     x402.MustRaw(x402.LightningPayload{Preimage: goldenPre, PaymentHash: goldenHash}),
+	}
+	settle, already, vErr := g.Settle(context.Background(), pp, goldenAtoms)
+	if vErr != nil || already || !settle.Success {
+		t.Fatalf("settle: %v already=%v %+v", vErr, already, settle)
+	}
+}
+
+// TestMCPServerURLConfig checks the config default: MCPChallenge advertises
+// Config.MCPServerURL (trailing slash trimmed) and New rejects a relative
+// value.
+func TestMCPServerURLConfig(t *testing.T) {
+	g, err := New(Config{
+		Backend: &fakeLN{}, Store: store.NewMemory(), Network: Mainnet, PayTo: goldenDest,
+		Service: "example", MCPServerURL: "https://api.example.com/mcp/",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	res, err := g.MCPChallenge(context.Background(), "process", "", goldenAtoms)
+	if err != nil {
+		t.Fatal(err)
+	}
+	pr, err := ParsePaymentRequiredResult(res.StructuredContent)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if pr.Resource.URL != "https://api.example.com/mcp" {
+		t.Fatalf("resource url = %q", pr.Resource.URL)
+	}
+
+	if _, err := New(Config{
+		Backend: &fakeLN{}, Store: store.NewMemory(), Network: Mainnet, PayTo: goldenDest,
+		Service: "example", MCPServerURL: "/mcp",
+	}); err == nil {
+		t.Fatal("relative MCPServerURL accepted")
 	}
 }

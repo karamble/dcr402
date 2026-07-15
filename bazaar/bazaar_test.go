@@ -101,3 +101,49 @@ func TestSubmitSanitizesMetadata(t *testing.T) {
 		t.Fatalf("metadata not sanitized: %+v", list.Items[0])
 	}
 }
+
+// TestHarvestBazaarTuple checks settle-time cataloging of MCP tools listed
+// under their server endpoint URL: per-tool rows keyed by the tuple, the
+// extension stored, and a missing toolName rejected.
+func TestHarvestBazaarTuple(t *testing.T) {
+	svc := newTestService(t, Config{Networks: []string{"mainnet"}, Discovery: DiscoveryConfig{Enabled: true}})
+	ctx := context.Background()
+	const server = "https://api.example.com/mcp"
+
+	for _, tool := range []string{"process", "lookup"} {
+		pp := x402.PaymentPayload{
+			Resource: &x402.ResourceInfo{URL: server, ServiceName: "satellite"},
+			Extensions: map[string]x402.Extension{
+				dcr402.ExtensionBazaar: dcr402.BuildMCPDiscovery(tool, nil, "", "streamable-http", nil),
+			},
+		}
+		if status, reason := svc.harvestBazaar(ctx, pp, goldenRequirements()); status != "success" {
+			t.Fatalf("%s: status=%q reason=%q", tool, status, reason)
+		}
+	}
+	all, _ := svc.store.Resources(ctx)
+	if len(all) != 2 {
+		t.Fatalf("cataloged %d resources, want 2", len(all))
+	}
+	for _, r := range all {
+		if r.URL != server || r.ToolName == "" || r.Type != "mcp" {
+			t.Fatalf("cataloged resource wrong: %+v", r)
+		}
+		if _, ok := r.Extensions[dcr402.ExtensionBazaar]; !ok {
+			t.Fatalf("extension not stored: %+v", r)
+		}
+	}
+
+	// An mcp info without toolName cannot form the tuple key.
+	perm := x402.Extension{
+		Info:   json.RawMessage(`{"input":{"type":"mcp"}}`),
+		Schema: json.RawMessage(`{"type":"object"}`),
+	}
+	pp := x402.PaymentPayload{
+		Resource:   &x402.ResourceInfo{URL: server},
+		Extensions: map[string]x402.Extension{dcr402.ExtensionBazaar: perm},
+	}
+	if status, reason := svc.harvestBazaar(ctx, pp, goldenRequirements()); status != "rejected" || reason != "missing input.toolName" {
+		t.Fatalf("missing toolName: status=%q reason=%q", status, reason)
+	}
+}

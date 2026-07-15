@@ -225,8 +225,19 @@ unchanged: a tool call requiring payment returns a tool result with
 `structuredContent` (as an object) and `content[0].text` (its JSON string
 serialization - both REQUIRED by the transport). The client retries the tool
 call with the `PaymentPayload` in `params._meta["x402/payment"]`; the server
-acknowledges settlement in `result._meta["x402/payment-response"]`. The
-`resource.url` for a tool uses the `mcp://tool/<name>` convention.
+acknowledges settlement in `result._meta["x402/payment-response"]`.
+
+The `resource.url` for a tool SHOULD be the server's public streamable-HTTP
+MCP endpoint (e.g. `https://api.example.com/mcp`), with the per-tool
+identity carried by the bazaar extension's `info.input.toolName` - this is
+what a facilitator catalogs, and the discovery tuple
+`(resource.url, toolName)` stays globally unique
+([bazaar extension](https://github.com/x402-foundation/x402/blob/main/specs/extensions/bazaar.md)).
+A seller with no public endpoint falls back to the host-less
+`mcp://tool/<name>` convention from the transport spec examples. Either
+way, settlement binds to the per-tool key `mcp://tool/<name>` (plus the
+priced amount), never to the shared endpoint URL, so a proof minted for one
+tool cannot settle another.
 
 ## `PaymentRequirements` for `exact`
 
@@ -749,10 +760,15 @@ and `schema` is a JSON Schema (Draft 2020-12) that validates `info`. The client
 echoes the extension in its `PaymentPayload`. On settlement the facilitator
 validates `info` against `schema`, sanitizes the resource service metadata
 (`serviceName`, `tags`, `iconUrl`) with the soft-drop rules, catalogs the
-resource (keyed by URL; an MCP URL encodes the tool name), and reports the
-outcome in an `EXTENSION-RESPONSES` header (`bazaar.status`). A
-`/discovery/submit` endpoint offers the same cataloging for a seller that
-self-registers.
+resource keyed by the `(resource.url, toolName)` tuple - `toolName` is lifted
+from the validated `info.input` for MCP resources (REQUIRED there: an MCP
+server multiplexes many tools over one endpoint URL) and empty for HTTP -
+and reports the outcome in an `EXTENSION-RESPONSES` header (`bazaar.status`).
+A `/discovery/submit` endpoint offers the same cataloging for a seller that
+self-registers; its request carries the same `extensions` bag, and the served
+discovery items echo it, so a consumer reads the tool identity from
+`extensions.bazaar.info.input.toolName` next to the connectable
+`resource` URL.
 
 ### Payment identifier (`payment-identifier`)
 

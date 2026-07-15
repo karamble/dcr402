@@ -185,6 +185,113 @@
         ]
       },
       "note": "MCP transport: no base64 \u2014 the object rides in the JSON-RPC tool result. content[0].text MUST be the JSON serialization of structuredContent."
+    },
+    {
+      "name": "mcp-payment-required-server-url",
+      "type": "MCP tool result",
+      "json": {
+        "isError": true,
+        "structuredContent": {
+          "x402Version": 2,
+          "error": "Payment required",
+          "resource": {
+            "url": "https://mcp.example.com/mcp",
+            "description": "Example payable MCP tool",
+            "mimeType": "application/json"
+          },
+          "accepts": [
+            {
+              "scheme": "exact",
+              "network": "bip122:298e5cc3d985bfe7f81dc135f360abe0",
+              "amount": "250000",
+              "asset": "DCR",
+              "payTo": "03e7156ae33b0a208d0744199163177e909e80176e55d97a2f221ede0f934dd9ad",
+              "maxTimeoutSeconds": 3600,
+              "extra": {
+                "assetTransferMethod": "lightning",
+                "invoice": "lndcr2500u1pvjluezpp5qt2yngclhvn8ere496vk3fu78e0ujhqmh649qt7kg48tmedyhmwqdpqv33hydpsxgsxwmmvv3jkugrkv43hgmmjxqrrssdztqxz9z9ys3q59ml9270ej0t9wt62442s3tzzldns0a6j247qkkqzakysm9yz75xqze4a7r3h7tsys8tcugay7f8sru2l8a7s07srcqc5t8f7",
+                "paymentHash": "02d449a31fbb267c8f352e9968a79e3e5fc95c1bbeaa502fd6454ebde5a4bedc"
+              }
+            }
+          ],
+          "extensions": {
+            "l402": {
+              "info": {
+                "tokenTtlSeconds": 2592000
+              },
+              "schema": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "type": "object",
+                "properties": {
+                  "tokenTtlSeconds": {
+                    "type": "integer",
+                    "minimum": 0
+                  }
+                },
+                "required": [
+                  "tokenTtlSeconds"
+                ]
+              }
+            },
+            "bazaar": {
+              "info": {
+                "input": {
+                  "inputSchema": {
+                    "type": "object"
+                  },
+                  "toolName": "process",
+                  "transport": "streamable-http",
+                  "type": "mcp"
+                }
+              },
+              "schema": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "properties": {
+                  "input": {
+                    "additionalProperties": false,
+                    "properties": {
+                      "inputSchema": {
+                        "type": "object"
+                      },
+                      "toolName": {
+                        "type": "string"
+                      },
+                      "transport": {
+                        "enum": [
+                          "streamable-http",
+                          "sse"
+                        ],
+                        "type": "string"
+                      },
+                      "type": {
+                        "const": "mcp",
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "type",
+                      "toolName",
+                      "inputSchema"
+                    ],
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "input"
+                ],
+                "type": "object"
+              }
+            }
+          }
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"x402Version\":2,\"error\":\"Payment required\",\"resource\":{\"url\":\"https://mcp.example.com/mcp\",\"description\":\"Example payable MCP tool\",\"mimeType\":\"application/json\"},\"accepts\":[{\"scheme\":\"exact\",\"network\":\"bip122:298e5cc3d985bfe7f81dc135f360abe0\",\"amount\":\"250000\",\"asset\":\"DCR\",\"payTo\":\"03e7156ae33b0a208d0744199163177e909e80176e55d97a2f221ede0f934dd9ad\",\"maxTimeoutSeconds\":3600,\"extra\":{\"assetTransferMethod\":\"lightning\",\"invoice\":\"lndcr2500u1pvjluezpp5qt2yngclhvn8ere496vk3fu78e0ujhqmh649qt7kg48tmedyhmwqdpqv33hydpsxgsxwmmvv3jkugrkv43hgmmjxqrrssdztqxz9z9ys3q59ml9270ej0t9wt62442s3tzzldns0a6j247qkkqzakysm9yz75xqze4a7r3h7tsys8tcugay7f8sru2l8a7s07srcqc5t8f7\",\"paymentHash\":\"02d449a31fbb267c8f352e9968a79e3e5fc95c1bbeaa502fd6454ebde5a4bedc\"}}],\"extensions\":{\"l402\":{\"info\":{\"tokenTtlSeconds\":2592000},\"schema\":{\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"type\":\"object\",\"properties\":{\"tokenTtlSeconds\":{\"type\":\"integer\",\"minimum\":0}},\"required\":[\"tokenTtlSeconds\"]}},\"bazaar\":{\"info\":{\"input\":{\"inputSchema\":{\"type\":\"object\"},\"toolName\":\"process\",\"transport\":\"streamable-http\",\"type\":\"mcp\"}},\"schema\":{\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"properties\":{\"input\":{\"additionalProperties\":false,\"properties\":{\"inputSchema\":{\"type\":\"object\"},\"toolName\":{\"type\":\"string\"},\"transport\":{\"enum\":[\"streamable-http\",\"sse\"],\"type\":\"string\"},\"type\":{\"const\":\"mcp\",\"type\":\"string\"}},\"required\":[\"type\",\"toolName\",\"inputSchema\"],\"type\":\"object\"}},\"required\":[\"input\"],\"type\":\"object\"}}}}"
+          }
+        ]
+      },
+      "note": "MCP transport, server-endpoint form: resource.url is the server's public streamable-HTTP MCP endpoint and the per-tool identity rides extensions.bazaar.info.input.toolName - the discovery tuple (resource.url, toolName). The host-less mcp-payment-required vector remains the fallback form. Settlement binds to mcp://tool/<name> either way."
     }
   ]
 }

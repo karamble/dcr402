@@ -144,8 +144,8 @@ func main() {
 	if err := json.Unmarshal(scRaw, &toolPR); err != nil || len(toolPR.Accepts) == 0 {
 		fail("tool challenge: %s", scRaw)
 	}
-	if toolPR.Resource.URL != "mcp://tool/hello_tool" {
-		fail("tool resource url %q", toolPR.Resource.URL)
+	if toolPR.Resource.URL != gw+"/mcp2" {
+		fail("tool resource url %q, want the gateway's own MCP endpoint", toolPR.Resource.URL)
 	}
 	var toolExtra x402.LightningExtra
 	_ = json.Unmarshal(toolPR.Accepts[0].Extra, &toolExtra)

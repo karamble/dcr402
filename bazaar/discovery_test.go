@@ -181,3 +181,145 @@ func getJSON(t *testing.T, url string, out any) {
 		t.Fatal(err)
 	}
 }
+
+// mcpSubmit builds a submission for one tool of an MCP server listed under
+// its endpoint URL, per-tool identity in the bazaar extension.
+func mcpSubmit(serverURL, tool string) SubmitRequest {
+	return SubmitRequest{
+		Resource: serverURL,
+		Type:     "mcp",
+		Accepts:  []x402.PaymentRequirements{goldenRequirements()},
+		Metadata: x402.ResourceInfo{
+			ServiceName: "satellite",
+			Description: tool + " over MCP",
+			Tags:        []string{"imagery"},
+		},
+		Extensions: map[string]x402.Extension{
+			dcr402.ExtensionBazaar: dcr402.BuildMCPDiscovery(tool, nil, "", "streamable-http", nil),
+		},
+	}
+}
+
+// TestSubmitMCPTuple checks the catalog keys MCP entries by the
+// (resource, toolName) tuple: many tools of one server coexist, upserts
+// converge per tool, the wire items carry the extension, search matches the
+// tool name, and the host-less fallback form stands alone.
+func TestSubmitMCPTuple(t *testing.T) {
+	srv := discoveryService(t, Config{
+		Networks:  []string{"mainnet"},
+		Discovery: DiscoveryConfig{Enabled: true, PublicSubmit: true},
+	})
+	const server = "https://api.example.com/mcp"
+
+	for _, tool := range []string{"process", "lookup"} {
+		if err := Submit(context.Background(), srv.URL, "", mcpSubmit(server, tool)); err != nil {
+			t.Fatalf("submit %s: %v", tool, err)
+		}
+	}
+	// Same tool again: an upsert, not a third row.
+	if err := Submit(context.Background(), srv.URL, "", mcpSubmit(server, "process")); err != nil {
+		t.Fatal(err)
+	}
+	// The host-less fallback form keys on its own URL.
+	fallback := mcpSubmit("mcp://tool/legacy", "legacy")
+	if err := Submit(context.Background(), srv.URL, "", fallback); err != nil {
+		t.Fatal(err)
+	}
+
+	var list listResourcesResponse
+	getJSON(t, srv.URL+"/discovery/resources", &list)
+	if len(list.Items) != 3 || list.Pagination.Total != 3 {
+		t.Fatalf("list: %+v", list)
+	}
+	servers := 0
+	for _, item := range list.Items {
+		if item.Resource == server {
+			servers++
+			ext, ok := item.Extensions[dcr402.ExtensionBazaar]
+			if !ok || len(ext.Info) == 0 {
+				t.Fatalf("item lacks the bazaar extension: %+v", item)
+			}
+		}
+	}
+	if servers != 2 {
+		t.Fatalf("server-url items = %d, want 2", servers)
+	}
+
+	var hit searchResourcesResponse
+	getJSON(t, srv.URL+"/discovery/search?query=lookup", &hit)
+	if len(hit.Resources) != 1 {
+		t.Fatalf("toolName search: %+v", hit.Resources)
+	}
+}
+
+// TestSubmitMCPServerURLRequiresToolName checks an MCP listing under a
+// server URL is rejected without its per-tool identity, and a type mismatch
+// between the item and the extension input is rejected.
+func TestSubmitMCPServerURLRequiresToolName(t *testing.T) {
+	srv := discoveryService(t, Config{
+		Networks:  []string{"mainnet"},
+		Discovery: DiscoveryConfig{Enabled: true, PublicSubmit: true},
+	})
+	post := func(req SubmitRequest) int {
+		t.Helper()
+		body, _ := json.Marshal(req)
+		resp, err := http.Post(srv.URL+"/discovery/submit", "application/json", bytes.NewReader(body))
+		if err != nil {
+			t.Fatal(err)
+		}
+		resp.Body.Close()
+		return resp.StatusCode
+	}
+
+	bare := mcpSubmit("https://api.example.com/mcp", "process")
+	bare.Extensions = nil
+	if got := post(bare); got != http.StatusBadRequest {
+		t.Fatalf("server-url mcp without toolName: status %d, want 400", got)
+	}
+
+	mismatch := mcpSubmit("https://api.example.com/mcp", "process")
+	mismatch.Extensions = map[string]x402.Extension{
+		dcr402.ExtensionBazaar: dcr402.BuildHTTPDiscovery("GET", nil, nil),
+	}
+	if got := post(mismatch); got != http.StatusBadRequest {
+		t.Fatalf("type mismatch: status %d, want 400", got)
+	}
+
+	// The host-less fallback needs no extension: the URL encodes the tool.
+	bareFallback := mcpSubmit("mcp://tool/process", "process")
+	bareFallback.Extensions = nil
+	if got := post(bareFallback); got != http.StatusOK {
+		t.Fatalf("fallback mcp url: status %d, want 200", got)
+	}
+}
+
+// TestStoreTupleKeys pins tuple keying on both Store implementations.
+func TestStoreTupleKeys(t *testing.T) {
+	stores := map[string]Store{"memory": NewMemory()}
+	sq, err := OpenSQLite(t.TempDir() + "/bazaar.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { sq.Close() })
+	stores["sqlite"] = sq
+
+	for name, st := range stores {
+		ctx := context.Background()
+		put := func(url, tool string) {
+			t.Helper()
+			if err := st.PutResource(ctx, Resource{URL: url, ToolName: tool, Type: "mcp"}); err != nil {
+				t.Fatalf("%s: put: %v", name, err)
+			}
+		}
+		put("https://api.example.com/mcp", "process")
+		put("https://api.example.com/mcp", "lookup")
+		put("https://api.example.com/mcp", "process") // upsert
+		all, err := st.Resources(ctx)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if len(all) != 2 {
+			t.Fatalf("%s: %d rows, want 2", name, len(all))
+		}
+	}
+}

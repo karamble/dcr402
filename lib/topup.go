@@ -91,7 +91,7 @@ func (g *Gate) Topup(opts TopupOptions) http.Handler {
 		if opts.Resource != nil {
 			resource = opts.Resource(r)
 		}
-		art, err := g.buildTopupChallenge(r.Context(), resource, atoms, opts.Confirmations)
+		art, err := g.buildTopupChallenge(r.Context(), resource, "", atoms, opts.Confirmations)
 		if err != nil {
 			http.Error(w, "building top-up challenge", http.StatusInternalServerError)
 			return
@@ -166,10 +166,18 @@ func (g *Gate) serveTopupSettlement(w http.ResponseWriter, r *http.Request, sig 
 // Topup remains the batteries-included HTTP endpoint over the gate ledger.
 // confirmations <= 0 uses the TopupOptions default of 2.
 func (g *Gate) TopupChallenge(ctx context.Context, resource x402.ResourceInfo, amountAtoms int64, confirmations int32) (x402.PaymentRequired, error) {
+	return g.TopupChallengeBound(ctx, resource, "", amountAtoms, confirmations)
+}
+
+// TopupChallengeBound is TopupChallenge with the settlement binding key
+// decoupled from the wire resource, mirroring ChallengeBound: both minted
+// entries are stored under bind while the 402 carries resource untouched.
+// Empty bind falls back to resource.URL.
+func (g *Gate) TopupChallengeBound(ctx context.Context, resource x402.ResourceInfo, bind string, amountAtoms int64, confirmations int32) (x402.PaymentRequired, error) {
 	if confirmations <= 0 {
 		confirmations = 2
 	}
-	art, err := g.buildTopupChallenge(ctx, resource, amountAtoms, confirmations)
+	art, err := g.buildTopupChallenge(ctx, resource, bind, amountAtoms, confirmations)
 	if err != nil {
 		return x402.PaymentRequired{}, err
 	}
@@ -179,8 +187,12 @@ func (g *Gate) TopupChallenge(ctx context.Context, resource x402.ResourceInfo, a
 // buildTopupChallenge assembles the dual-method top-up challenge: a
 // lightning entry and, with an onchain backend, an onchain entry — one
 // shared token_id, so both credentials name the same ledger account.
-func (g *Gate) buildTopupChallenge(ctx context.Context, resource x402.ResourceInfo, amountAtoms int64, confirmations int32) (*challengeArtifacts, error) {
+// bind semantics match buildChallenge.
+func (g *Gate) buildTopupChallenge(ctx context.Context, resource x402.ResourceInfo, bind string, amountAtoms int64, confirmations int32) (*challengeArtifacts, error) {
 	now := g.now()
+	if bind == "" {
+		bind = resource.URL
+	}
 
 	var tokenID [32]byte
 	if _, err := rand.Read(tokenID[:]); err != nil {
@@ -188,7 +200,7 @@ func (g *Gate) buildTopupChallenge(ctx context.Context, resource x402.ResourceIn
 	}
 
 	// Lightning entry.
-	memo := g.cfg.Service + " topup " + resource.URL
+	memo := g.cfg.Service + " topup " + bind
 	invoice, paymentHash, err := g.cfg.Backend.CreateInvoice(ctx, amountAtoms, memo, g.cfg.ChallengeTTL)
 	if err != nil {
 		return nil, fmt.Errorf("dcr402: create invoice: %w", err)
@@ -220,7 +232,7 @@ func (g *Gate) buildTopupChallenge(ctx context.Context, resource x402.ResourceIn
 		MacaroonB64:  macLB64,
 		RootKeyID:    sha256.Sum256(macL.ID),
 		Requirements: reqL,
-		Resource:     resource.URL,
+		Resource:     bind,
 		AmountAtoms:  amountAtoms,
 		CreatedAt:    now,
 		ExpiresAt:    now.Add(g.cfg.ChallengeTTL),
@@ -270,7 +282,7 @@ func (g *Gate) buildTopupChallenge(ctx context.Context, resource x402.ResourceIn
 		if err := g.cfg.Store.PutOnchainChallenge(ctx, store.OnchainChallenge{
 			Address:            address,
 			Requirements:       reqO,
-			Resource:           resource.URL,
+			Resource:           bind,
 			AmountAtoms:        amountAtoms,
 			Confirmations:      confirmations,
 			MacaroonB64:        macOB64,

@@ -2,6 +2,7 @@ package dcr402
 
 import (
 	"context"
+	"encoding/hex"
 	"testing"
 	"time"
 
@@ -65,5 +66,61 @@ func TestChallengeExportRejectsNonPositive(t *testing.T) {
 	}
 	if _, err := g.Challenge(context.Background(), x402.ResourceInfo{URL: "x"}, 0, nil); err == nil {
 		t.Fatal("zero amount accepted")
+	}
+}
+
+// TestChallengeBoundStoresBind pins the exported bind/wire split for both
+// builders: the 402 carries the wire resource, the store carries the bind.
+func TestChallengeBoundStoresBind(t *testing.T) {
+	st := store.NewMemory()
+	g, err := New(Config{
+		Backend: &fakeLN{}, Store: st, Network: Mainnet, PayTo: goldenDest,
+		Service: "export", TokenTTL: time.Hour, ChallengeTTL: time.Hour,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	var hash [32]byte
+	raw, _ := hex.DecodeString(goldenHash)
+	copy(hash[:], raw)
+
+	wire := x402.ResourceInfo{URL: "https://api.example.com/mcp"}
+	pr, err := g.ChallengeBound(context.Background(), wire, "mcp://tool/register?usd_micros=1000", goldenAtoms, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if pr.Resource.URL != wire.URL {
+		t.Fatalf("wire url = %q", pr.Resource.URL)
+	}
+	ch, err := st.GetChallenge(context.Background(), hash)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if ch.Resource != "mcp://tool/register?usd_micros=1000" {
+		t.Fatalf("stored bind = %q", ch.Resource)
+	}
+
+	// Topup counterpart (lightning-only backend).
+	st2 := store.NewMemory()
+	g2, err := New(Config{
+		Backend: &fakeLN{}, Store: st2, Network: Mainnet, PayTo: goldenDest,
+		Service: "export", TokenTTL: time.Hour, ChallengeTTL: time.Hour,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	pr2, err := g2.TopupChallengeBound(context.Background(), wire, "mcp://tool/topup?usd_micros=5000000", goldenAtoms, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if pr2.Resource.URL != wire.URL {
+		t.Fatalf("topup wire url = %q", pr2.Resource.URL)
+	}
+	ch2, err := st2.GetChallenge(context.Background(), hash)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if ch2.Resource != "mcp://tool/topup?usd_micros=5000000" {
+		t.Fatalf("topup stored bind = %q", ch2.Resource)
 	}
 }

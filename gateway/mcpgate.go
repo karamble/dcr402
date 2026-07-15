@@ -342,7 +342,10 @@ func (iw *injectingWriter) Flush() {
 // content item — content[0] stays the transport-required serialization of
 // structuredContent.
 func (gw *Gateway) writeMCPToolChallenge(w http.ResponseWriter, r *http.Request, id json.RawMessage, tool string, price int64, note string) {
-	result, err := gw.gate.MCPChallenge(r.Context(), tool, "", price)
+	// The request-derived URL is the gateway's own MCP endpoint for this
+	// upstream — the resource a facilitator catalogs; settlement stays
+	// bound to the per-tool key (lib MCPChallengeAt).
+	result, err := gw.gate.MCPChallengeAt(r.Context(), gatewayURL(r), tool, "", price)
 	if err != nil {
 		http.Error(w, "building payment challenge", http.StatusInternalServerError)
 		return

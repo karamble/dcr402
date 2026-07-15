@@ -275,13 +275,37 @@ for fname in ("x402-lightning.json", "x402-onchain.json"):
         mcp = by_name["mcp-payment-required"]["json"]
         check(mcp["isError"] is True, "mcp: isError != true")
         sc = mcp["structuredContent"]
-        check(sc["resource"]["url"].startswith("mcp://tool/"), "mcp: resource.url convention")
+        check(sc["resource"]["url"].startswith("mcp://tool/"), "mcp: resource.url fallback convention")
         check(
             json.loads(mcp["content"][0]["text"]) == sc,
             "mcp: content[0].text != structuredContent",
         )
         for i, e in enumerate(sc["accepts"]):
             check_requirements_entry(e, f"mcp/accepts[{i}]")
+
+        # Server-endpoint form: the connectable URL in resource.url, the
+        # per-tool identity in the bazaar extension (discovery tuple).
+        mcps = by_name["mcp-payment-required-server-url"]["json"]
+        check(mcps["isError"] is True, "mcp-server-url: isError != true")
+        scs = mcps["structuredContent"]
+        check(
+            scs["resource"]["url"].startswith("https://"),
+            "mcp-server-url: resource.url must be an absolute https endpoint",
+        )
+        binput = scs["extensions"]["bazaar"]["info"]["input"]
+        check(
+            binput["type"] == "mcp" and binput["toolName"] == "process"
+            and binput["transport"] == "streamable-http",
+            "mcp-server-url: bazaar info.input identity",
+        )
+        breq = scs["extensions"]["bazaar"]["schema"]["properties"]["input"]["required"]
+        check("toolName" in breq, "mcp-server-url: schema must require toolName")
+        check(
+            json.loads(mcps["content"][0]["text"]) == scs,
+            "mcp-server-url: content[0].text != structuredContent",
+        )
+        for i, e in enumerate(scs["accepts"]):
+            check_requirements_entry(e, f"mcp-server-url/accepts[{i}]")
     else:
         check(
             hashlib.sha256(b"dcr402 onchain vector txid").hexdigest()

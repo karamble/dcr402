@@ -45,6 +45,17 @@ func bazaarInputType(info json.RawMessage) string {
 	return probe.Input.Type
 }
 
+// bazaarInputToolName reads the discovery input's toolName (mcp inputs).
+func bazaarInputToolName(info json.RawMessage) string {
+	var probe struct {
+		Input struct {
+			ToolName string `json:"toolName"`
+		} `json:"input"`
+	}
+	_ = json.Unmarshal(info, &probe)
+	return probe.Input.ToolName
+}
+
 // harvestBazaar validates and catalogs a resource from a settled payment's
 // echoed bazaar extension, returning the EXTENSION-RESPONSES bazaar.status. An
 // absent extension returns ("", "") and catalogs nothing. Metadata is
@@ -65,11 +76,22 @@ func (s *Service) harvestBazaar(ctx context.Context, pp x402.PaymentPayload, off
 	if typ != "http" && typ != "mcp" {
 		return "rejected", "unknown discovery type"
 	}
+	// The catalog key is the (resource url, toolName) tuple
+	// (specs/extensions/bazaar.md): an MCP server multiplexes many tools
+	// over one endpoint URL, so the URL alone is not unique.
+	toolName := ""
+	if typ == "mcp" {
+		toolName = bazaarInputToolName(ext.Info)
+		if toolName == "" {
+			return "rejected", "missing input.toolName"
+		}
+	}
 
 	meta := *pp.Resource
 	dcr402.SanitizeServiceMetadata(&meta)
 	res := Resource{
 		URL:         meta.URL,
+		ToolName:    toolName,
 		Type:        typ,
 		Accepts:     []x402.PaymentRequirements{offered},
 		Description: meta.Description,
@@ -79,11 +101,12 @@ func (s *Service) harvestBazaar(ctx context.Context, pp x402.PaymentPayload, off
 		IconURL:     meta.IconURL,
 		LastUpdated: s.now(),
 	}
+	if len(ext.Info)+len(ext.Schema) <= maxExtensionBytes {
+		res.Extensions = map[string]x402.Extension{dcr402.ExtensionBazaar: ext}
+	}
 	if offered.Network != "" {
 		res.Networks = []string{offered.Network}
 	}
-	// The catalog key is the resource URL; for MCP the URL is
-	// mcp://tool/<name>, so it already encodes the (url, toolName) tuple.
 	if err := s.store.PutResource(ctx, res); err != nil {
 		return "rejected", "storage error"
 	}

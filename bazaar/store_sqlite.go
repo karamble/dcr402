@@ -21,9 +21,11 @@ CREATE TABLE IF NOT EXISTS settlements (
 	settled_at INTEGER NOT NULL
 );
 CREATE TABLE IF NOT EXISTS resources (
-	url          TEXT PRIMARY KEY,
+	url          TEXT NOT NULL,
+	tool_name    TEXT NOT NULL DEFAULT '',
 	data         BLOB NOT NULL,
-	last_updated INTEGER NOT NULL
+	last_updated INTEGER NOT NULL,
+	PRIMARY KEY (url, tool_name)
 );
 `
 
@@ -107,18 +109,19 @@ func (s *SQLite) GetSettlement(ctx context.Context, key string) ([]byte, bool, e
 	return resp, true, nil
 }
 
-// PutResource implements Store, upserting by URL. The full Resource is stored
-// as one JSON blob; the filtering happens in Go over the loaded set.
+// PutResource implements Store, upserting by the (url, tool_name) tuple. The
+// full Resource is stored as one JSON blob; the filtering happens in Go over
+// the loaded set.
 func (s *SQLite) PutResource(ctx context.Context, r Resource) error {
 	data, err := json.Marshal(r)
 	if err != nil {
 		return err
 	}
 	_, err = s.db.ExecContext(ctx, `
-		INSERT INTO resources (url, data, last_updated)
-		VALUES (?, ?, ?)
-		ON CONFLICT(url) DO UPDATE SET data = excluded.data, last_updated = excluded.last_updated`,
-		r.URL, data, r.LastUpdated.Unix())
+		INSERT INTO resources (url, tool_name, data, last_updated)
+		VALUES (?, ?, ?, ?)
+		ON CONFLICT(url, tool_name) DO UPDATE SET data = excluded.data, last_updated = excluded.last_updated`,
+		r.URL, r.ToolName, data, r.LastUpdated.Unix())
 	return err
 }
 

@@ -19,7 +19,8 @@ type Store interface {
 	// GetSettlement returns a previously notarized response by key, so a
 	// re-presented settle is idempotent even after the invoice expires.
 	GetSettlement(ctx context.Context, key string) (response []byte, ok bool, err error)
-	// PutResource upserts a discovery-index entry, keyed by resource URL.
+	// PutResource upserts a discovery-index entry, keyed by the
+	// (URL, ToolName) tuple.
 	PutResource(ctx context.Context, r Resource) error
 	// Resources returns every indexed resource; the caller filters and
 	// paginates (the index is per-instance and modest).
@@ -28,19 +29,22 @@ type Store interface {
 	Close() error
 }
 
+// resourceKey is the discovery-index tuple key.
+type resourceKey struct{ url, tool string }
+
 // Memory is an in-memory Store for tests and ephemeral instances (state is
 // lost on restart).
 type Memory struct {
 	mu          sync.Mutex
 	settlements map[string][]byte
-	resources   map[string]Resource
+	resources   map[resourceKey]Resource
 }
 
 // NewMemory returns an empty in-memory Store.
 func NewMemory() *Memory {
 	return &Memory{
 		settlements: make(map[string][]byte),
-		resources:   make(map[string]Resource),
+		resources:   make(map[resourceKey]Resource),
 	}
 }
 
@@ -67,7 +71,7 @@ func (m *Memory) GetSettlement(_ context.Context, key string) ([]byte, bool, err
 func (m *Memory) PutResource(_ context.Context, r Resource) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	m.resources[r.URL] = r
+	m.resources[resourceKey{r.URL, r.ToolName}] = r
 	return nil
 }
 

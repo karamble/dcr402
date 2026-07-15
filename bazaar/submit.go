@@ -20,7 +20,9 @@ import (
 // Bazaar EXTENSION-RESPONSES ack that hosted facilitators do not emit, so a
 // dcr402 or dcr402d deployment can list itself explicitly.
 type SubmitRequest struct {
-	// Resource is the resource URL (or mcp://tool/name), the index key.
+	// Resource is the resource URL: for http the paid endpoint, for mcp the
+	// server's public streamable-HTTP endpoint (with the tool identified by
+	// the bazaar extension) or the host-less mcp://tool/<name> fallback.
 	Resource string `json:"resource"`
 	// Type is "http" (default) or "mcp".
 	Type string `json:"type,omitempty"`
@@ -29,7 +31,17 @@ type SubmitRequest struct {
 	// Metadata carries the human-facing fields (serviceName, tags, iconUrl,
 	// description, mimeType). Its URL is ignored in favor of Resource.
 	Metadata x402.ResourceInfo `json:"metadata"`
+	// Extensions carries the item's extension payloads (the foundation
+	// discovery-item shape). Only the "bazaar" extension is validated and
+	// stored; an mcp resource listed under its server endpoint URL MUST
+	// carry its per-tool identity in the extension's info.input.toolName -
+	// the catalog is keyed by the (resource, toolName) tuple.
+	Extensions map[string]x402.Extension `json:"extensions,omitempty"`
 }
+
+// maxExtensionBytes caps a stored extension payload (info + schema) so a
+// submission cannot bloat the index.
+const maxExtensionBytes = 64 << 10
 
 // toResource validates a SubmitRequest and turns it into a stored Resource.
 func (req SubmitRequest) toResource(now time.Time) (Resource, error) {
@@ -64,7 +76,7 @@ func (req SubmitRequest) toResource(now time.Time) (Resource, error) {
 			networks = append(networks, a.Network)
 		}
 	}
-	return Resource{
+	res := Resource{
 		URL:         req.Resource,
 		Type:        typ,
 		Accepts:     req.Accepts,
@@ -75,7 +87,28 @@ func (req SubmitRequest) toResource(now time.Time) (Resource, error) {
 		IconURL:     meta.IconURL,
 		Networks:    networks,
 		LastUpdated: now,
-	}, nil
+	}
+	if ext, ok := req.Extensions[dcr402.ExtensionBazaar]; ok {
+		if len(ext.Info)+len(ext.Schema) > maxExtensionBytes {
+			return Resource{}, fmt.Errorf("bazaar extension exceeds its size limit")
+		}
+		if err := validateDiscoveryInfo(ext); err != nil {
+			return Resource{}, fmt.Errorf("bazaar extension info failed schema validation")
+		}
+		if it := bazaarInputType(ext.Info); it != typ {
+			return Resource{}, fmt.Errorf("bazaar extension input type %q does not match resource type %q", it, typ)
+		}
+		res.ToolName = bazaarInputToolName(ext.Info)
+		res.Extensions = map[string]x402.Extension{dcr402.ExtensionBazaar: ext}
+	}
+	// An mcp resource listed under its server endpoint URL is unaddressable
+	// without the per-tool identity, and every tool of the server would
+	// collide on the same key. The host-less mcp://tool/<name> form encodes
+	// the tool in the URL itself, so it stands alone.
+	if typ == "mcp" && res.ToolName == "" && !strings.HasPrefix(strings.TrimSpace(req.Resource), "mcp:") {
+		return Resource{}, fmt.Errorf("an mcp resource listed under a server URL requires the bazaar extension's input.toolName")
+	}
+	return res, nil
 }
 
 // validResourceURL accepts only http(s) URLs with a host, or an mcp:// URL -

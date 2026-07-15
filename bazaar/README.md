@@ -108,6 +108,28 @@ bazaar.Submit(ctx, "https://fac.example.com", "", bazaar.SubmitRequest{
 })
 ```
 
+An MCP tool is listed under its server's public streamable-HTTP endpoint,
+with the per-tool identity in the bazaar extension - the index is keyed by
+the `(resource, toolName)` tuple (specs/extensions/bazaar.md), so every tool
+of one server is its own entry:
+
+```go
+bazaar.Submit(ctx, "https://fac.example.com", "", bazaar.SubmitRequest{
+    Resource: "https://api.example.com/mcp",
+    Type:     "mcp",
+    Accepts:  accepts,
+    Metadata: x402.ResourceInfo{ServiceName: "satellite", Tags: []string{"imagery"}},
+    Extensions: map[string]x402.Extension{
+        dcr402.ExtensionBazaar: dcr402.BuildMCPDiscovery("get_image", inputSchema, "", "streamable-http", nil),
+    },
+})
+```
+
+The host-less `mcp://tool/<name>` fallback form (no extension required)
+remains accepted for sellers that do not advertise a public endpoint.
+Settle-time harvesting catalogs the same tuple from the payment payload's
+echoed `resource.url` and bazaar extension.
+
 A runnable walkthrough is in
 [`../docs/examples/run-dcrbazaar`](../docs/examples/run-dcrbazaar); the
 simnet end-to-end driver is

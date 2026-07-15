@@ -18,8 +18,24 @@ const (
 	MetaPaymentResponse = "x402/payment-response"
 )
 
-// MCPToolURL renders the resource URL convention for a payable tool.
+// MCPToolURL renders the host-less fallback resource URL convention for a
+// payable tool (specs/transports-v2/mcp.md). It identifies the tool on the
+// wire but not the serving endpoint; sellers that want facilitators to
+// catalog a connectable endpoint advertise their public MCP URL instead —
+// see MCPResourceURL and Config.MCPServerURL. It remains the settlement
+// binding key either way.
 func MCPToolURL(tool string) string { return "mcp://tool/" + tool }
+
+// MCPResourceURL renders the wire resource URL for a payable tool: the
+// server's public streamable-HTTP endpoint when known (the bazaar catalog
+// form — the tool itself rides the discovery extension's info.input
+// toolName), else the host-less MCPToolURL fallback.
+func MCPResourceURL(serverURL, tool string) string {
+	if serverURL == "" {
+		return MCPToolURL(tool)
+	}
+	return serverURL
+}
 
 // ToolContent is one MCP tool-result content item.
 type ToolContent struct {
@@ -51,9 +67,21 @@ func PaymentRequiredToolResult(pr x402.PaymentRequired) (*ToolResult, error) {
 }
 
 // MCPChallenge builds the payment-required tool result for a payable tool:
-// a fresh challenge priced at amountAtoms with resource URL
-// "mcp://tool/<tool>".
+// a fresh challenge priced at amountAtoms. The resource URL is the gate's
+// Config.MCPServerURL when set, else the "mcp://tool/<tool>" fallback;
+// settlement always binds to the per-tool key.
 func (g *Gate) MCPChallenge(ctx context.Context, tool, description string, amountAtoms int64) (*ToolResult, error) {
+	return g.MCPChallengeAt(ctx, g.cfg.MCPServerURL, tool, description, amountAtoms)
+}
+
+// MCPChallengeAt is MCPChallenge with an explicit server endpoint URL for
+// the wire resource — for callers whose public URL varies per request (a
+// gateway fronting many upstreams). Empty serverURL falls back to the
+// host-less mcp://tool/<tool> convention. The challenge is stored under
+// the per-tool binding key MCPToolURL(tool) regardless, so a proof minted
+// for one tool never settles another even when every tool of the server
+// advertises the same resource URL.
+func (g *Gate) MCPChallengeAt(ctx context.Context, serverURL, tool, description string, amountAtoms int64) (*ToolResult, error) {
 	var extra map[string]x402.Extension
 	if g.cfg.MCPDiscovery != nil {
 		if ext := g.cfg.MCPDiscovery(tool); ext != nil {
@@ -61,10 +89,10 @@ func (g *Gate) MCPChallenge(ctx context.Context, tool, description string, amoun
 		}
 	}
 	art, err := g.buildChallenge(ctx, x402.ResourceInfo{
-		URL:         MCPToolURL(tool),
+		URL:         MCPResourceURL(serverURL, tool),
 		Description: description,
 		MimeType:    "application/json",
-	}, amountAtoms, extra)
+	}, MCPToolURL(tool), amountAtoms, extra)
 	if err != nil {
 		return nil, err
 	}
@@ -133,12 +161,20 @@ type MCPPaymentOutcome struct {
 // returned when a presented payment does not verify.
 func (g *Gate) ServeMCPPayment(ctx context.Context, tool, description string, requiredAtoms int64,
 	meta map[string]json.RawMessage) (*MCPPaymentOutcome, *VerifyError, error) {
+	return g.ServeMCPPaymentAt(ctx, g.cfg.MCPServerURL, tool, description, requiredAtoms, meta)
+}
+
+// ServeMCPPaymentAt is ServeMCPPayment with an explicit server endpoint URL
+// for challenge resources — the MCPChallengeAt counterpart. Empty serverURL
+// falls back to the mcp://tool/<tool> convention.
+func (g *Gate) ServeMCPPaymentAt(ctx context.Context, serverURL, tool, description string, requiredAtoms int64,
+	meta map[string]json.RawMessage) (*MCPPaymentOutcome, *VerifyError, error) {
 	pp, ok, err := DecodeMetaPayment(meta)
 	if err != nil {
 		return nil, nil, err
 	}
 	if !ok {
-		ch, err := g.MCPChallenge(ctx, tool, description, requiredAtoms)
+		ch, err := g.MCPChallengeAt(ctx, serverURL, tool, description, requiredAtoms)
 		if err != nil {
 			return nil, nil, err
 		}

@@ -33,15 +33,15 @@ func clampPageSize(limit int) int {
 	return limit
 }
 
-// indexFull reports whether a new url would exceed the index cap (updating an
-// existing entry is always allowed).
-func (s *Service) indexFull(ctx context.Context, url string) bool {
+// indexFull reports whether a new (url, toolName) tuple would exceed the
+// index cap (updating an existing entry is always allowed).
+func (s *Service) indexFull(ctx context.Context, url, toolName string) bool {
 	all, err := s.store.Resources(ctx)
 	if err != nil || len(all) < maxResources {
 		return false
 	}
 	for _, x := range all {
-		if x.URL == url {
+		if x.URL == url && x.ToolName == toolName {
 			return false
 		}
 	}
@@ -49,9 +49,13 @@ func (s *Service) indexFull(ctx context.Context, url string) bool {
 }
 
 // Resource is one entry in the discovery index: what a seller submits, keyed
-// by URL. It is rendered into the Bazaar DiscoveryResource envelope on read.
+// by the (URL, ToolName) tuple - an MCP server multiplexes many tools over
+// one endpoint URL, so the URL alone is not unique
+// (specs/extensions/bazaar.md). ToolName is empty for http resources. It is
+// rendered into the Bazaar DiscoveryResource envelope on read.
 type Resource struct {
-	URL         string                     // resource url (primary key)
+	URL         string                     // resource url (tuple key)
+	ToolName    string                     // mcp per-tool identity (tuple key; "" for http)
 	Type        string                     // "http" or "mcp"
 	Accepts     []x402.PaymentRequirements // the resource's accepts[] entries
 	Description string
@@ -59,23 +63,27 @@ type Resource struct {
 	ServiceName string
 	Tags        []string
 	IconURL     string
-	Networks    []string  // CAIP-2 ids across accepts, for network filtering
-	LastUpdated time.Time // upsert time
+	Extensions  map[string]x402.Extension // item extension payloads (bazaar)
+	Networks    []string                  // CAIP-2 ids across accepts, for network filtering
+	LastUpdated time.Time                 // upsert time
 }
 
 // discoveryResource is the Bazaar wire item (x402-foundation/x402/go/
-// extensions/bazaar: DiscoveryResource).
+// extensions/bazaar: DiscoveryResource). An MCP tool's identity rides
+// extensions.bazaar.info.input.toolName next to the server endpoint URL in
+// resource; there is deliberately no top-level toolName field.
 type discoveryResource struct {
-	Resource    string            `json:"resource"`
-	Type        string            `json:"type"`
-	X402Version int               `json:"x402Version"`
-	Accepts     []json.RawMessage `json:"accepts"`
-	LastUpdated string            `json:"lastUpdated"`
-	Description string            `json:"description,omitempty"`
-	MimeType    string            `json:"mimeType,omitempty"`
-	ServiceName string            `json:"serviceName,omitempty"`
-	Tags        []string          `json:"tags,omitempty"`
-	IconURL     string            `json:"iconUrl,omitempty"`
+	Resource    string                    `json:"resource"`
+	Type        string                    `json:"type"`
+	X402Version int                       `json:"x402Version"`
+	Accepts     []json.RawMessage         `json:"accepts"`
+	LastUpdated string                    `json:"lastUpdated"`
+	Description string                    `json:"description,omitempty"`
+	MimeType    string                    `json:"mimeType,omitempty"`
+	ServiceName string                    `json:"serviceName,omitempty"`
+	Tags        []string                  `json:"tags,omitempty"`
+	IconURL     string                    `json:"iconUrl,omitempty"`
+	Extensions  map[string]x402.Extension `json:"extensions,omitempty"`
 }
 
 type pagination struct {
@@ -199,7 +207,7 @@ func (s *Service) handleSubmit(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusBadRequest, map[string]string{"error": err.Error()})
 		return
 	}
-	if s.indexFull(r.Context(), res.URL) {
+	if s.indexFull(r.Context(), res.URL, res.ToolName) {
 		writeJSON(w, http.StatusServiceUnavailable, map[string]string{"error": "discovery index is full"})
 		return
 	}
@@ -207,7 +215,11 @@ func (s *Service) handleSubmit(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "internal error"})
 		return
 	}
-	writeJSON(w, http.StatusOK, map[string]string{"status": "indexed", "resource": res.URL})
+	ack := map[string]string{"status": "indexed", "resource": res.URL}
+	if res.ToolName != "" {
+		ack["toolName"] = res.ToolName
+	}
+	writeJSON(w, http.StatusOK, ack)
 }
 
 // filterResources returns, in stable URL order, the resources matching f.
@@ -231,7 +243,12 @@ func filterResources(all []Resource, f resourceFilter) []Resource {
 		}
 		out = append(out, r)
 	}
-	sort.Slice(out, func(i, j int) bool { return out[i].URL < out[j].URL })
+	sort.Slice(out, func(i, j int) bool {
+		if out[i].URL != out[j].URL {
+			return out[i].URL < out[j].URL
+		}
+		return out[i].ToolName < out[j].ToolName
+	})
 	return out
 }
 
@@ -265,6 +282,7 @@ func toDiscoveryResource(r Resource) discoveryResource {
 		ServiceName: r.ServiceName,
 		Tags:        r.Tags,
 		IconURL:     r.IconURL,
+		Extensions:  r.Extensions,
 	}
 }
 
@@ -290,7 +308,8 @@ func matchesQuery(r Resource, query string) bool {
 	q := strings.ToLower(query)
 	if strings.Contains(strings.ToLower(r.ServiceName), q) ||
 		strings.Contains(strings.ToLower(r.Description), q) ||
-		strings.Contains(strings.ToLower(r.URL), q) {
+		strings.Contains(strings.ToLower(r.URL), q) ||
+		strings.Contains(strings.ToLower(r.ToolName), q) {
 		return true
 	}
 	for _, tag := range r.Tags {

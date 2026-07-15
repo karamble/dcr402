@@ -62,12 +62,17 @@ func (g *Gate) mintCredential(ctx context.Context, paymentHash, tokenID [32]byte
 
 // buildChallenge creates the invoice, mints the credential (annex §3:
 // mint-at-challenge), persists the challenge and root key, and assembles
-// the PaymentRequired object.
-func (g *Gate) buildChallenge(ctx context.Context, resource x402.ResourceInfo, amountAtoms int64, extra map[string]x402.Extension) (*challengeArtifacts, error) {
+// the PaymentRequired object. bind, when non-empty, is stored as the
+// challenge's Resource in place of resource.URL, decoupling the settlement
+// binding key from the wire resource object; empty keeps them fused.
+func (g *Gate) buildChallenge(ctx context.Context, resource x402.ResourceInfo, bind string, amountAtoms int64, extra map[string]x402.Extension) (*challengeArtifacts, error) {
 	if amountAtoms <= 0 {
 		return nil, fmt.Errorf("dcr402: amount must be positive, got %d", amountAtoms)
 	}
-	memo := g.cfg.Service + " " + resource.URL
+	if bind == "" {
+		bind = resource.URL
+	}
+	memo := g.cfg.Service + " " + bind
 	invoice, paymentHash, err := g.cfg.Backend.CreateInvoice(ctx, amountAtoms, memo, g.cfg.ChallengeTTL)
 	if err != nil {
 		return nil, fmt.Errorf("dcr402: create invoice: %w", err)
@@ -106,7 +111,7 @@ func (g *Gate) buildChallenge(ctx context.Context, resource x402.ResourceInfo, a
 		MacaroonB64:  macB64,
 		RootKeyID:    sha256.Sum256(mac.ID),
 		Requirements: reqJSON,
-		Resource:     resource.URL,
+		Resource:     bind,
 		AmountAtoms:  amountAtoms,
 		CreatedAt:    now,
 		ExpiresAt:    now.Add(g.cfg.ChallengeTTL),
@@ -149,7 +154,17 @@ func (g *Gate) buildChallenge(ctx context.Context, resource x402.ResourceInfo, a
 // Require and MCPChallenge are the HTTP and MCP conveniences over the same
 // mint.
 func (g *Gate) Challenge(ctx context.Context, resource x402.ResourceInfo, amountAtoms int64, extra map[string]x402.Extension) (x402.PaymentRequired, error) {
-	art, err := g.buildChallenge(ctx, resource, amountAtoms, extra)
+	return g.ChallengeBound(ctx, resource, "", amountAtoms, extra)
+}
+
+// ChallengeBound is Challenge with the settlement binding key decoupled from
+// the wire resource: the challenge is stored (and its invoice memo written)
+// under bind while the 402 carries resource untouched. Sellers advertising a
+// shared endpoint URL (an MCP server multiplexing tools) keep per-tool
+// binding by passing the per-tool key here. Empty bind falls back to
+// resource.URL — plain Challenge.
+func (g *Gate) ChallengeBound(ctx context.Context, resource x402.ResourceInfo, bind string, amountAtoms int64, extra map[string]x402.Extension) (x402.PaymentRequired, error) {
+	art, err := g.buildChallenge(ctx, resource, bind, amountAtoms, extra)
 	if err != nil {
 		return x402.PaymentRequired{}, err
 	}

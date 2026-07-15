@@ -556,8 +556,20 @@ upstreams:
 	sc, _ := json.Marshal(result["structuredContent"])
 	var pr x402.PaymentRequired
 	if err := json.Unmarshal(sc, &pr); err != nil || pr.X402Version != 2 ||
-		pr.Resource.URL != "mcp://tool/process" || pr.Accepts[0].Amount != "250000" {
+		pr.Resource.URL != mcpURL || pr.Accepts[0].Amount != "250000" {
 		t.Fatalf("challenge wrong: %s", sc)
+	}
+	// The per-tool identity rides the bazaar extension next to the
+	// request-derived server URL.
+	var info struct {
+		Input struct {
+			ToolName  string `json:"toolName"`
+			Transport string `json:"transport"`
+		} `json:"input"`
+	}
+	if err := json.Unmarshal(pr.Extensions[dcr402.ExtensionBazaar].Info, &info); err != nil ||
+		info.Input.ToolName != "process" || info.Input.Transport != "streamable-http" {
+		t.Fatalf("bazaar extension wrong: %s", pr.Extensions[dcr402.ExtensionBazaar].Info)
 	}
 	if hits.Load() != before {
 		t.Fatal("unpaid tools/call reached the upstream")
